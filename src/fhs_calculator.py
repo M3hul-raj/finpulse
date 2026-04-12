@@ -2,7 +2,7 @@
 fhs_calculator.py
 Computes Financial Health Score (FHS) for each customer segment.
 FHS = 0.4*balance_trend + 0.3*income_regularity + 0.2*spending_volatility + 0.1*debt_ratio
-Score range: 0-100. <40=RED, 40-65=YELLOW, >65=GREEN
+Score range: 0-100. <60=RED, 60-75=YELLOW, >75=GREEN
 """
 
 import numpy as np
@@ -58,9 +58,9 @@ def compute_fhs(balances: pd.Series) -> float:
 
 
 def get_risk_label(fhs: float) -> str:
-    if fhs < 40:
+    if fhs < 60:
         return "RED"
-    elif fhs < 65:
+    elif fhs < 75:
         return "YELLOW"
     return "GREEN"
 
