@@ -11,13 +11,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 FALLBACK_RESPONSES = {
-    "Govt/PSU": "The Govt/PSU segment shows a critically declining FHS from 32.3 to 26.4 over 30 days; the relationship team should immediately schedule financial wellness calls with customers in this segment and offer restructured EMI plans before the next salary cycle.",
-    "Gig/Freelance": "With gig workers showing a worst-case FHS lower bound of 24.9, the team should proactively offer a short-term liquidity buffer product or micro-credit line to prevent overdrafts during irregular income months.",
-    "Young Professionals": "Young professionals are approaching critical FHS levels with a lower bound of 24.5; recommend targeted outreach offering budgeting tools and automatic savings nudges to build financial resilience before the 30-day horizon.",
-    "Small Business": "The Small Business segment's FHS lower bound of 25.6 signals cash flow stress; the relationship team should offer working capital loan pre-approvals to the most at-risk customers in this segment immediately.",
-    "Retirees": "Retirees showing a WARNING-level FHS with lower bound of 25.9 may be experiencing pension shortfalls; proactive outreach offering fixed deposit re-structuring or pension advance products is recommended within 7 days.",
-    "Daily Wage": "Daily wage workers with FHS lower bound of 27.6 face the highest income volatility; the team should enroll this segment in NatWest's micro-savings auto-sweep program to build a minimum 2-week expense buffer.",
-    "Students": "The student segment's FHS lower bound of 27.8 indicates spending exceeding income; recommend deploying targeted in-app nudges with spending caps and overdraft warnings 5 days before predicted zero-balance dates.",
+    "Govt/PSU": "The Govt/PSU segment shows a critically declining FHS; the relationship team should immediately schedule financial wellness calls with customers in this segment and offer restructured EMI plans before the next salary cycle.",
+    "Gig/Freelance": "With gig workers showing a worsening FHS lower bound, the team should proactively offer a short-term liquidity buffer product or micro-credit line to prevent overdrafts during irregular income months.",
+    "Young Professionals": "Young professionals are approaching critical FHS levels; recommend targeted outreach offering budgeting tools and automatic savings nudges to build financial resilience before the 30-day horizon.",
+    "Small Business": "The Small Business segment's FHS lower bound signals cash flow stress; the relationship team should offer working capital loan pre-approvals to the most at-risk customers in this segment immediately.",
+    "Retirees": "Retirees showing a WARNING-level FHS may be experiencing pension shortfalls; proactive outreach offering fixed deposit re-structuring or pension advance products is recommended within 7 days.",
+    "Daily Wage": "Daily wage workers face the highest income volatility; the team should enroll this segment in NatWest's micro-savings auto-sweep program to build a minimum 2-week expense buffer.",
+    "Students": "The student segment's FHS lower bound indicates spending exceeding income; recommend deploying targeted in-app nudges with spending caps and overdraft warnings 5 days before predicted zero-balance dates.",
 }
 
 
