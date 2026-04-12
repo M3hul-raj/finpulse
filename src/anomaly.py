@@ -9,7 +9,7 @@ import pandas as pd
 def detect_anomalies(forecast_results: dict) -> list[dict]:
     """
     Flags segments where:
-    - yhat_lower drops below 35 in next 14 days (critical zone)
+    - yhat_lower drops below 60 in next 14 days (critical zone)
     - OR FHS is declining over the forecast period
     Returns list of alert dicts.
     """
@@ -24,14 +24,15 @@ def detect_anomalies(forecast_results: dict) -> list[dict]:
         fhs_end   = fc["yhat"].iloc[-1]
         declining = fhs_end < fhs_start - 1.0
 
-        if min_lower < 35 or declining:
+        # Updated thresholds: 60 for Warning (RED boundary), 45 for Critical
+        if min_lower < 60 or declining:
             alerts.append({
                 "segment":    seg,
                 "min_lower":  round(min_lower, 1),
                 "fhs_day1":   round(fhs_start, 1),
                 "fhs_day30":  round(fhs_end, 1),
                 "declining":  declining,
-                "severity":   "CRITICAL" if min_lower < 25 else "WARNING",
+                "severity":   "CRITICAL" if min_lower < 45 else "WARNING",
             })
 
     alerts.sort(key=lambda x: x["min_lower"])

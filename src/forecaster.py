@@ -13,23 +13,24 @@ FORECAST_DAYS = 30
 
 
 def build_daily_fhs_series(df: pd.DataFrame, segment: str) -> pd.Series:
-    """Compute daily average FHS per segment using 30-day rolling windows."""
+    """Compute daily average FHS per segment to match Heatmap logic exactly."""
     seg_df = df[df["segment"] == segment].copy()
-    seg_df["date"] = pd.to_datetime(seg_df["date"])
+    
+    # Pivot: rows=date, cols=customer_id
+    pivot = seg_df.pivot(index="date", columns="customer_id", values="balance")
+    pivot.index = pd.to_datetime(pivot.index)
 
-    daily_avg = seg_df.groupby("date")["balance"].mean()
-    daily_avg.index = pd.DatetimeIndex(daily_avg.index, freq="D")
-
-    window = 30
+    # Use expanding window for the last 90 days to match Heatmap logic
+    dates = pivot.index[-90:]
     fhs_vals = []
-    dates = []
-    for i in range(window, len(daily_avg)):
-        window_bal = daily_avg.iloc[i - window:i]
-        fhs_vals.append(compute_fhs(window_bal))
-        dates.append(daily_avg.index[i])
+    
+    for end_date in dates:
+        window_df = pivot.loc[:end_date]
+        cust_fhs = [compute_fhs(window_df[col]) for col in window_df.columns]
+        fhs_vals.append(np.mean(cust_fhs))
 
-    series = pd.Series(fhs_vals, index=pd.DatetimeIndex(dates, freq="D"))
-    return series
+    # freq="D" added to prevent statsmodels Holt-Winters warnings
+    return pd.Series(fhs_vals, index=pd.DatetimeIndex(dates, freq="D"))
 
 
 def forecast_segment(series: pd.Series) -> pd.DataFrame:

@@ -24,7 +24,7 @@ RISK_COLORS = {"RED": "#e74c3c", "YELLOW": "#f39c12", "GREEN": "#27ae60"}
 def load_data():
     return pd.read_csv("data/historical.csv", parse_dates=["date"])
 
-@st.cache_data(show_spinner="Running AI forecasts (first load takes ~3 min)...")
+@st.cache_data(show_spinner="Running AI forecasts (may take 5–8 min on first load)...")
 def run_forecasts(shock_pct):
     df = load_data()
     if shock_pct > 0:
