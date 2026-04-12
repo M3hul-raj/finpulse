@@ -24,7 +24,6 @@ def detect_anomalies(forecast_results: dict) -> list[dict]:
         fhs_end   = fc["yhat"].iloc[-1]
         declining = fhs_end < fhs_start - 1.0
 
-        # Updated thresholds: 60 for Warning (RED boundary), 45 for Critical
         if min_lower < 60 or declining:
             alerts.append({
                 "segment":    seg,
@@ -32,7 +31,8 @@ def detect_anomalies(forecast_results: dict) -> list[dict]:
                 "fhs_day1":   round(fhs_start, 1),
                 "fhs_day30":  round(fhs_end, 1),
                 "declining":  declining,
-                "severity":   "CRITICAL" if min_lower < 45 else "WARNING",
+                # FIX: Align CRITICAL severity with the < 60 RED threshold
+                "severity":   "CRITICAL" if min_lower < 60 else "WARNING",
             })
 
     alerts.sort(key=lambda x: x["min_lower"])
