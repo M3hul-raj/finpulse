@@ -12,6 +12,7 @@ let state = {
   segments: [],
   chart: null,
   forecastLoaded: false,
+  baselineHeatmap: null,
 };
 
 // ── DOM References ─────────────────────────────────────────────
@@ -115,6 +116,34 @@ async function loadHeatmap() {
 
     grid.appendChild(card);
   });
+
+  // ── Scenario Comparison (Gap 2 fix) ──
+  const compEl = $('#scenarioComparison');
+  if (state.shock > 0 && state.baselineHeatmap) {
+    compEl.style.display = 'block';
+    $('#scenarioComparisonTag').textContent = `${state.shock}% shock vs baseline`;
+    const body = $('#scenarioComparisonBody');
+    body.innerHTML = data.map(seg => {
+      const baseline = state.baselineHeatmap.find(b => b.segment === seg.segment);
+      if (!baseline) return '';
+      const delta = seg.fhs - baseline.fhs;
+      const deltaClass = delta < -2 ? 'negative' : delta > 2 ? 'positive' : 'neutral';
+      const riskColor = seg.risk_label === 'RED' ? 'var(--risk-red)' :
+                        seg.risk_label === 'YELLOW' ? 'var(--risk-yellow)' : 'var(--risk-green)';
+      return `
+        <div class="scenario-comparison-item">
+          <div class="scenario-comparison-segment">${seg.segment}</div>
+          <div class="scenario-comparison-values">
+            <span class="scenario-comparison-baseline">${baseline.fhs.toFixed(1)}</span>
+            <span class="scenario-comparison-shocked" style="color: ${riskColor}">${seg.fhs.toFixed(1)}</span>
+            <span class="scenario-comparison-delta ${deltaClass}">${delta >= 0 ? '+' : ''}${delta.toFixed(1)}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } else {
+    compEl.style.display = 'none';
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -383,6 +412,38 @@ async function loadForecast() {
   const deltaEl = $('#fcDelta');
   deltaEl.textContent = `${delta >= 0 ? '↑' : '↓'} ${delta.toFixed(1)}`;
   deltaEl.className = `forecast-kpi-delta ${delta >= 0 ? 'up' : 'down'}`;
+
+  // ── Forecast Text Summary (Gap 1 fix) ──
+  generateForecastSummary(segment, day1, day30, delta, minLower, maxUpper, fc);
+}
+
+function generateForecastSummary(segment, day1, day30, delta, minLower, maxUpper, fc) {
+  const summaryEl = $('#forecastSummary');
+  const textEl = $('#forecastSummaryText');
+  summaryEl.style.display = 'flex';
+
+  const pctChange = ((delta / day1) * 100).toFixed(1);
+  const direction = delta >= 0 ? 'increase' : 'decline';
+  const riskLabel = day30 < 60 ? 'RED' : day30 < 75 ? 'YELLOW' : 'GREEN';
+  const riskClass = riskLabel.toLowerCase();
+  const riskWord = riskLabel === 'RED' ? 'Critical' : riskLabel === 'YELLOW' ? 'At-Risk' : 'Healthy';
+
+  // Check for declining trend in forecast
+  const midpoint = Math.floor(fc.yhat.length / 2);
+  const firstHalf = fc.yhat.slice(0, midpoint).reduce((a, b) => a + b, 0) / midpoint;
+  const secondHalf = fc.yhat.slice(midpoint).reduce((a, b) => a + b, 0) / (fc.yhat.length - midpoint);
+  const trendNote = secondHalf < firstHalf - 0.5 ? ' A downward trend is observed in the second half of the forecast window.' :
+                    secondHalf > firstHalf + 0.5 ? ' A recovery trend is detected in the latter forecast period.' : '';
+
+  const shockNote = state.shock > 0 ? ` Under a <strong>${state.shock}% expense shock</strong> scenario,` : '';
+
+  textEl.innerHTML = `
+    <strong>30-Day Forecast Summary — ${segment}:</strong>${shockNote}
+    FHS is projected to ${direction} from <strong>${day1.toFixed(1)}</strong> to <strong>${day30.toFixed(1)}</strong>
+    (${delta >= 0 ? '+' : ''}${pctChange}%) over the next 30 days.
+    Range: <strong>${minLower.toFixed(1)}</strong> (worst-case) to <strong>${maxUpper.toFixed(1)}</strong> (best-case).
+    The segment remains in <span class="summary-risk ${riskClass}">${riskWord} (${riskLabel})</span> zone.${trendNote}
+  `;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -578,6 +639,9 @@ async function init() {
     // Load segments first (fast)
     await loadSegments();
     $('#loadingStatus').textContent = 'Loading portfolio data...';
+
+    // Store baseline heatmap (no shock) for scenario comparison
+    state.baselineHeatmap = await fetchJSON('/api/heatmap?shock=0');
 
     // Load fast data → show dashboard → then lazy-load slow data
     await Promise.all([loadPortfolio(), loadHeatmap()]);

@@ -180,7 +180,8 @@ After running `python src/api_server.py` and opening http://localhost:5000:
 1. View the **Portfolio Overview** — 4 KPI cards showing customer counts and risk distribution
 2. Inspect the **Risk Heatmap** — 8 segment cards with FHS scores and risk levels. Click any card to jump to its forecast
 3. Explore the **30-Day Forecast Chart** — select any segment from the dropdown to see historical FHS, AI forecast, uncertainty bands, and SMA baseline
-4. Review **Early Warning Alerts** — expand flagged segments to see FHS metrics and GenAI-generated intervention recommendations
+4. Read the **Forecast Summary** — auto-generated natural-language summary below the chart explaining the forecast in plain English
+5. Review **Early Warning Alerts** — expand flagged segments to see FHS metrics and GenAI-generated intervention recommendations
 
 ### Scenario Testing
 Use the sidebar slider **"Simulate expense shock"** to model events:
@@ -188,11 +189,96 @@ Use the sidebar slider **"Simulate expense shock"** to model events:
 - **25% shock** → housing cost spike
 - **50% shock** → economic crisis scenario
 
-The heatmap, forecast chart, KPIs, and alerts update dynamically to reflect the simulated scenario.
+When a shock is applied, a **Scenario Impact Analysis** table appears below the heatmap showing a side-by-side comparison of baseline FHS vs shocked FHS with delta values for each segment.
+
+### API Endpoints
+
+All data is available via REST API. Example calls using `curl`:
+
+**1. Get portfolio KPIs:**
+```bash
+curl http://localhost:5000/api/portfolio?shock=0
+```
+```json
+{
+  "total_customers": 1000,
+  "critical": 1,
+  "warning": 1,
+  "healthy": 6
+}
+```
+
+**2. Get segment risk heatmap:**
+```bash
+curl http://localhost:5000/api/heatmap?shock=0
+```
+```json
+[
+  {"segment": "Daily Wage", "fhs": 56.23, "risk_label": "RED"},
+  {"segment": "Students", "fhs": 69.36, "risk_label": "YELLOW"},
+  {"segment": "Gig/Freelance", "fhs": 77.01, "risk_label": "GREEN"},
+  ...
+]
+```
+
+**3. Get 30-day forecast for a segment:**
+```bash
+curl "http://localhost:5000/api/forecast?segment=Daily%20Wage&shock=0"
+```
+```json
+{
+  "segment": "Daily Wage",
+  "historical": {
+    "dates": ["2024-10-03T00:00:00", ...],
+    "values": [56.45, 56.32, ...]
+  },
+  "forecast": {
+    "dates": ["2025-01-01T00:00:00", ...],
+    "yhat": [56.2, 56.1, ...],
+    "yhat_lower": [55.4, 55.3, ...],
+    "yhat_upper": [57.0, 56.9, ...]
+  }
+}
+```
+
+**4. Get anomaly alerts with GenAI explanations:**
+```bash
+curl http://localhost:5000/api/alerts?shock=0
+```
+```json
+[
+  {
+    "segment": "Daily Wage",
+    "severity": "CRITICAL",
+    "fhs_day1": 56.2,
+    "fhs_day30": 55.9,
+    "min_lower": 55.5,
+    "declining": true,
+    "explanation": "Daily wage workers face the highest income volatility; the team should enroll this segment in NatWest's micro-savings auto-sweep program..."
+  }
+]
+```
+
+**5. Scenario comparison (apply 25% shock):**
+```bash
+curl http://localhost:5000/api/heatmap?shock=25
+```
+Compare response with `?shock=0` to see the FHS impact on each segment.
 
 ---
 
-## viii. Limitations
+## viii. Forecast Validation
+
+FinPulse uses two built-in validation mechanisms to ensure forecast reliability:
+
+1. **Baseline comparison (30-day SMA):** Every forecast is plotted alongside a Simple Moving Average baseline. If the AI forecast significantly deviates from the SMA without good reason, it signals potential overfitting.
+2. **Uncertainty bands (95% CI):** Forecasts include `yhat_lower` and `yhat_upper` bounds computed from residual standard deviation (±1.96σ), providing a statistically grounded range rather than a single-point prediction.
+
+These ensure the system communicates uncertainty honestly rather than producing overconfident predictions.
+
+---
+
+## ix. Limitations
 
 - Synthetic data only — no real NatWest customer data used
 - LLM recommendations use curated fallback responses due to Gemini free-tier rate limits; live API calls are attempted first on every run
@@ -202,7 +288,7 @@ The heatmap, forecast chart, KPIs, and alerts update dynamically to reflect the 
 
 ---
 
-## ix. Future Improvements
+## x. Future Improvements
 
 - Real transaction data ingestion via NatWest Open Banking API
 - Per-customer FHS tracking (not just segment averages)
@@ -216,3 +302,4 @@ The heatmap, forecast chart, KPIs, and alerts update dynamically to reflect the 
 *Built for NatWest Code for Purpose Hackathon 2026 · Team BIT Mesra*
 
 *Open-source under Apache License 2.0*
+

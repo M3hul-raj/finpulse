@@ -142,6 +142,17 @@
         <div class="heatmap-grid" id="heatmapGrid">
           <!-- Dynamically populated -->
         </div>
+        <!-- Scenario Comparison (shown when shock > 0) -->
+        <div class="scenario-comparison" id="scenarioComparison" style="display: none;">
+          <div class="scenario-comparison-header">
+            <span class="scenario-comparison-icon">⚖️</span>
+            <strong>Scenario Impact Analysis</strong>
+            <span class="scenario-comparison-tag" id="scenarioComparisonTag">0% shock vs baseline</span>
+          </div>
+          <div class="scenario-comparison-body" id="scenarioComparisonBody">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
       </section>
 
       <!-- ═══ FORECAST ═══ -->
@@ -182,6 +193,12 @@
             <div class="forecast-kpi-label">Upper Bound (best)</div>
             <div class="forecast-kpi-value" id="fcUpper">—</div>
           </div>
+        </div>
+
+        <!-- Forecast Text Summary -->
+        <div class="forecast-summary" id="forecastSummary" style="display: none;">
+          <div class="forecast-summary-icon">📋</div>
+          <div class="forecast-summary-text" id="forecastSummaryText"></div>
         </div>
       </section>
 
