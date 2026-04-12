@@ -103,7 +103,14 @@ st.subheader("📈 30-Day FHS Forecast by Segment")
 forecast_results = run_forecasts(shock_pct)
 alerts = detect_anomalies(forecast_results)
 
-selected_seg = st.selectbox("Select segment to inspect:", list(forecast_results.keys()))
+segment_list = list(forecast_results.keys())
+default_index = segment_list.index("Daily Wage") if "Daily Wage" in segment_list else 0
+
+selected_seg = st.selectbox(
+    "Select segment to inspect:", 
+    segment_list,
+    index=default_index
+)
 data = forecast_results[selected_seg]
 hist = data["historical"]
 fc   = data["forecast"]
