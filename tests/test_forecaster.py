@@ -62,10 +62,11 @@ def test_fhs_negative_balance_penalized():
 def test_risk_labels():
     """Risk label thresholds must be correct."""
     assert get_risk_label(30)  == "RED"
-    assert get_risk_label(50)  == "YELLOW"
-    assert get_risk_label(70)  == "GREEN"
-    assert get_risk_label(39)  == "RED"
-    assert get_risk_label(65)  == "GREEN"
+    assert get_risk_label(59)  == "RED"
+    assert get_risk_label(60)  == "YELLOW"
+    assert get_risk_label(74)  == "YELLOW"
+    assert get_risk_label(75)  == "GREEN"
+    assert get_risk_label(90)  == "GREEN"
 
 
 def test_segment_fhs_returns_all_segments():

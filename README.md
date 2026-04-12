@@ -75,7 +75,7 @@ This generates `data/historical.csv` with 730,000 rows. Takes ~30 seconds.
 ```bash
 streamlit run src/app.py
 ```
-Dashboard opens at `http://localhost:8501`. First load takes ~3 minutes (forecasting 8 segments).
+Dashboard opens at http://localhost:8501. First load takes 5-8 minutes (calculating 90,000 FHS statistical data points across 8 segments). Subsequent loads are cached.
 
 ### 7. Run tests
 ```bash
@@ -151,7 +151,7 @@ Streamlit UI (src/app.py)
 FHS = (0.4 × Balance Trend) + (0.3 × Income Regularity)
     + (0.2 × Spending Volatility) + (0.1 × Debt Ratio)
 
-Score: 0–100  |  <40 = RED  |  40–65 = YELLOW  |  >65 = GREEN
+Score: 0–100 | <60 = RED | 60–75 = YELLOW | >75 = GREEN
 ```
 
 ---
