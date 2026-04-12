@@ -15,8 +15,9 @@ statsmodels>=0.14.0
 plotly>=6.0.0
 streamlit>=1.56.0
 
-# AI / LLM
+# AI / LLM (multi-provider fallback chain)
 google-genai>=1.70.0
+groq>=1.0.0
 
 # Utilities
 python-dotenv>=1.2.0

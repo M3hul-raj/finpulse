@@ -1,7 +1,14 @@
 """
 llm_explainer.py
-Uses Gemini API (gemini-2.0-flash-lite) to generate intervention recommendations.
-Live API call attempted first; falls back to curated responses if unavailable.
+Multi-provider AI engine for generating intervention recommendations.
+
+Provider chain (automatic fallback):
+  1. Google Gemini API  (gemini-2.0-flash-lite)  — best quality
+  2. Groq API           (llama-3.3-70b-versatile) — fastest inference, open-source
+  3. Curated fallback    (hardcoded, segment-specific) — guaranteed availability
+
+Live API calls are attempted first. If a provider fails (rate limit, network, etc.),
+the system automatically falls back to the next provider in the chain.
 """
 
 import os
@@ -10,6 +17,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# ── Curated Fallback Responses ──────────────────────────────────────────────
+# Used as a last resort when all AI providers are unavailable.
 FALLBACK_RESPONSES = {
     "Govt/PSU": "The Govt/PSU segment shows a critically declining FHS; the relationship team should immediately schedule financial wellness calls with customers in this segment and offer restructured EMI plans before the next salary cycle.",
     "Gig/Freelance": "With gig workers showing a worsening FHS lower bound, the team should proactively offer a short-term liquidity buffer product or micro-credit line to prevent overdrafts during irregular income months.",
@@ -18,20 +27,13 @@ FALLBACK_RESPONSES = {
     "Retirees": "Retirees showing declining FHS may be experiencing pension shortfalls; proactive outreach offering fixed deposit re-structuring or pension advance products is recommended within 7 days.",
     "Daily Wage": "Daily wage workers face the highest income volatility; the team should enroll this segment in NatWest's micro-savings auto-sweep program to build a minimum 2-week expense buffer.",
     "Students": "The student segment's FHS lower bound indicates spending exceeding income; recommend deploying targeted in-app nudges with spending caps and overdraft warnings 5 days before predicted zero-balance dates.",
+    "IT Salaried": "The IT Salaried segment is trending toward at-risk levels; recommend offering automated expense-tracking alerts and pre-approved emergency credit lines to hedge against tech layoff-driven income disruption.",
 }
 
 
-def explain_segment(alert: dict) -> str:
-    """
-    Attempts live Gemini API call; falls back to curated response if unavailable.
-    """
-    api_key = os.getenv("GEMINI_API_KEY")
-
-    if api_key:
-        try:
-            from google import genai
-            client = genai.Client(api_key=api_key)
-            prompt = f"""You are a risk analyst at NatWest bank. A monitoring system has flagged this customer segment:
+def _build_prompt(alert: dict) -> str:
+    """Builds a standardized prompt for any LLM provider."""
+    return f"""You are a risk analyst at NatWest bank. A monitoring system has flagged this customer segment:
 
 Segment: {alert['segment']}
 Financial Health Score Day 1: {alert['fhs_day1']} / 100
@@ -41,26 +43,85 @@ Severity: {alert['severity']}
 FHS Declining: {alert['declining']}
 
 Write exactly 1-2 sentences recommending a specific action for the bank's relationship team. Be direct, professional, and actionable. Do not use bullet points."""
-            response = client.models.generate_content(
-                model="gemini-2.0-flash-lite",
-                contents=prompt,
-            )
-            return response.text.strip()
-        except Exception:
-            pass
 
+
+def _try_gemini(prompt: str) -> str | None:
+    """Attempt generation via Google Gemini API."""
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return None
+    try:
+        from google import genai
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model="gemini-2.0-flash-lite",
+            contents=prompt,
+        )
+        text = response.text.strip()
+        if text:
+            print(f"    [AI] Gemini responded successfully")
+            return text
+    except Exception as e:
+        print(f"    [AI] Gemini unavailable: {type(e).__name__}")
+    return None
+
+
+def _try_groq(prompt: str) -> str | None:
+    """Attempt generation via Groq API (Llama 3.3 70B)."""
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        return None
+    try:
+        from groq import Groq
+        client = Groq(api_key=api_key)
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": "You are a senior risk analyst at NatWest bank. Provide concise, actionable recommendations."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.4,
+            max_tokens=150,
+        )
+        text = response.choices[0].message.content.strip()
+        if text:
+            print(f"    [AI] Groq (Llama 3.3 70B) responded successfully")
+            return text
+    except Exception as e:
+        print(f"    [AI] Groq unavailable: {type(e).__name__}")
+    return None
+
+
+def explain_segment(alert: dict) -> str:
+    """
+    Generates an AI explanation for a flagged segment.
+    Falls through the provider chain until one succeeds.
+    """
+    prompt = _build_prompt(alert)
+
+    # Provider chain: Gemini → Groq → Curated fallback
+    result = _try_gemini(prompt)
+    if result:
+        return result
+
+    result = _try_groq(prompt)
+    if result:
+        return result
+
+    print(f"    [AI] Using curated fallback for {alert['segment']}")
     return FALLBACK_RESPONSES.get(
         alert["segment"],
-        f"Proactive outreach recommended for {alert['segment']} segment due to declining financial health indicators."
+        f"Proactive outreach recommended for {alert['segment']} segment due to declining financial health indicators.",
     )
 
 
 def explain_all_alerts(alerts: list[dict]) -> dict:
-    """Returns dict: segment -> explanation string."""
+    """Returns dict: segment → explanation string."""
     results = {}
     for a in alerts:
+        print(f"  Generating AI explanation for: {a['segment']}...")
         results[a["segment"]] = explain_segment(a)
-        time.sleep(2)
+        time.sleep(1)
     return results
 
 

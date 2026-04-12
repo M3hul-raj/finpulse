@@ -17,10 +17,10 @@ FinPulse is a bank-grade AI risk intelligence system built for NatWest's retail 
 - **30-Day FHS Forecast:** AI-powered forecast using Holt-Winters Exponential Smoothing with population spread, uncertainty bands, and 30-day SMA baseline comparison
 - **Anomaly Detection:** Automatic flagging of segments where the worst-case lower bound drops below critical thresholds within 14 days
 - **Scenario Testing:** Interactive slider to simulate expense shocks (0–50%) across all segments and instantly observe FHS impact on the entire dashboard
-- **GenAI Intervention Plans:** Gemini API integration generating actionable, 1–2 sentence recommendations per flagged segment
+- **GenAI Intervention Plans:** Multi-provider AI engine (Gemini + Groq/Llama 3.3 70B) generating actionable, 1–2 sentence recommendations per flagged segment with automatic provider fallback
 - **Synthetic Data Engine:** Realistic 2-year daily balance data for 1,000 customers with salary cycles, rent, groceries, and random shock events
 
-> **Note on LLM integration:** The Gemini API (gemini-2.0-flash-lite) is fully integrated with live API calls attempted on each run. Due to Google's free-tier rate limits on unverified projects, curated fallback responses are used for demo stability. The API call architecture is live and will work with a billing-linked project.
+> **Note on LLM integration:** The system uses a multi-provider AI fallback chain: Google Gemini API → Groq (Llama 3.3 70B) → curated responses. Live API calls are attempted on each run through both providers. If both free-tier quotas are exhausted, segment-specific curated responses ensure demo stability. At least one provider will be live at any given time.
 
 ---
 
@@ -59,11 +59,13 @@ copy .env.example .env
 cp .env.example .env
 ```
 
-Edit `.env` and add your Gemini API key:
+Edit `.env` and add your API keys (at least one AI key recommended):
 ```
 GEMINI_API_KEY=your_key_here
+GROQ_API_KEY=your_key_here
 ```
-Get a free key at: https://aistudio.google.com/app/apikey
+- Gemini: free key at https://aistudio.google.com/app/apikey
+- Groq: free key at https://console.groq.com (recommended — generous free tier)
 
 ### 5. Generate synthetic data (first time only)
 ```bash
@@ -95,7 +97,7 @@ Expected: 12 passed.
 | Charts | Chart.js 4.4 |
 | Forecasting | statsmodels 0.14 (Holt-Winters Exponential Smoothing) |
 | Baseline | pandas rolling SMA (30-day) |
-| AI/LLM | Google Gemini API (gemini-2.0-flash-lite) via google-genai SDK |
+| AI/LLM | Multi-provider: Google Gemini (gemini-2.0-flash-lite) + Groq (Llama 3.3 70B) with automatic fallback |
 | Data Generation | pandas + numpy (synthetic, no real customer data used) |
 | Testing | pytest 9.0 (12 unit tests) |
 | Env Management | python-dotenv |
