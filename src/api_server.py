@@ -6,10 +6,6 @@ Serves JSON data to the custom frontend dashboard.
 
 import sys
 import os
-import json
-import time
-import hashlib
-from functools import lru_cache
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -17,9 +13,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import pandas as pd
-import numpy as np
 
-from fhs_calculator import compute_segment_fhs, get_risk_label
+from fhs_calculator import compute_segment_fhs
 from forecaster import forecast_all_segments
 from anomaly import detect_anomalies
 from llm_explainer import explain_all_alerts

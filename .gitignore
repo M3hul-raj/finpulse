@@ -1,6 +1,28 @@
+# Environment
 .env
-__pycache__/
-*.pyc
 venv/
 .venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Data (generated, not tracked)
 *.csv
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage

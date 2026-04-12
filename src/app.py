@@ -1,3 +1,10 @@
+"""
+app.py
+Legacy Streamlit dashboard (alternate interface).
+Primary dashboard: run `python src/api_server.py` and open http://localhost:5000.
+To use this instead: `streamlit run src/app.py`
+"""
+
 import sys
 import os
 sys.path.insert(0, os.path.dirname(__file__))
