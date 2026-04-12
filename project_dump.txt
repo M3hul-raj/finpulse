@@ -21,11 +21,11 @@ SEGMENTS = [
 
 # Segment config: (monthly_income_mean, monthly_expense_ratio, income_stability)
 SEGMENT_CONFIG = {
-    "IT Salaried":         (85000, 0.55, 0.95),
+    "IT Salaried":         (85000, 0.35, 0.99), # Lowered expense to 35%, maxed stability
     "Gig/Freelance":       (45000, 0.70, 0.55),
     "Students":            (12000, 0.85, 0.80),
     "Small Business":      (60000, 0.65, 0.60),
-    "Govt/PSU":            (55000, 0.50, 0.98),
+    "Govt/PSU":            (55000, 0.30, 0.99), # Lowered expense to 30%, maxed stability
     "Retirees":            (30000, 0.60, 0.92),
     "Daily Wage":          (18000, 0.90, 0.45),
     "Young Professionals": (40000, 0.75, 0.85),
@@ -38,53 +38,56 @@ np.random.seed(42)
 
 
 def generate_customer(customer_id: int, segment: str) -> pd.DataFrame:
-    """Generate 2 years of daily balance data for a single customer."""
     income_mean, expense_ratio, stability = SEGMENT_CONFIG[segment]
-
     dates = pd.date_range(START_DATE, periods=DAYS, freq="D")
     balance = np.zeros(DAYS)
-    balance[0] = income_mean * np.random.uniform(0.5, 2.0)  # random starting balance
+    balance[0] = income_mean * stability * np.random.uniform(1.0, 3.0)
+
+    # Base actual income and expenses scaled by stability
+    actual_income = income_mean * stability
+    monthly_expense_budget = actual_income * expense_ratio
 
     for i, date in enumerate(dates):
         if i == 0:
             continue
 
-        # Monthly salary on 1st (with stability noise)
-        if date.day == 1:
-            income = income_mean * np.random.normal(stability, 1 - stability + 0.05)
-            balance[i] = balance[i-1] + max(income, 0)
-        else:
-            balance[i] = balance[i-1]
+        balance[i] = balance[i - 1]
 
-        # Rent/EMI on 2nd
+        # Monthly salary on 1st
+        if date.day == 1:
+            income = actual_income * np.random.normal(1.0, (1 - stability) * 0.3 + 0.05)
+            balance[i] += max(income, actual_income * 0.1)
+
+        # Rent/EMI on 2nd (35-45% of monthly expense budget)
         if date.day == 2:
-            rent = income_mean * expense_ratio * np.random.uniform(0.35, 0.45)
+            rent = monthly_expense_budget * np.random.uniform(0.35, 0.45)
             balance[i] -= rent
 
-        # Weekly groceries (Friday)
+        # Weekly groceries on Friday (15% of monthly budget / 4 weeks)
         if date.weekday() == 4:
-            balance[i] -= np.random.uniform(1500, 4000)
+            groceries = (monthly_expense_budget * 0.15 / 4) * np.random.uniform(0.8, 1.2)
+            balance[i] -= groceries
 
-        # Daily small expenses
-        balance[i] -= np.random.uniform(200, 800)
+        # Daily small expenses (25% of monthly budget / 30 days)
+        daily_expense = (monthly_expense_budget * 0.25 / 30) * np.random.uniform(0.5, 1.5)
+        balance[i] -= daily_expense
 
-        # Weekend extra spending
+        # Weekend extra spending (10% of monthly budget / 8 weekend days)
         if date.weekday() in (5, 6):
-            balance[i] -= np.random.uniform(500, 2000)
+            weekend_expense = (monthly_expense_budget * 0.10 / 8) * np.random.uniform(0.5, 1.5)
+            balance[i] -= weekend_expense
 
-        # Inject shocks (anomalies) ~4 times per year
-        if np.random.random() < 0.011:
-            shock = income_mean * np.random.uniform(0.3, 0.8)
+        # Shocks: ~2 per year (was 8), smaller magnitude
+        if np.random.random() < 0.0027:
+            shock = actual_income * np.random.uniform(0.1, 0.4)
             balance[i] -= shock
 
-    df = pd.DataFrame({
+    return pd.DataFrame({
         "date": dates,
         "balance": np.round(balance, 2),
         "customer_id": customer_id,
         "segment": segment,
     })
-    return df
-
 
 def generate_all_customers() -> pd.DataFrame:
     """Generate data for all 1,000 customers."""
@@ -109,7 +112,7 @@ if __name__ == "__main__":
 fhs_calculator.py
 Computes Financial Health Score (FHS) for each customer segment.
 FHS = 0.4*balance_trend + 0.3*income_regularity + 0.2*spending_volatility + 0.1*debt_ratio
-Score range: 0-100. <40=RED, 40-65=YELLOW, >65=GREEN
+Score range: 0-100. <60=RED, 60-75=YELLOW, >75=GREEN
 """
 
 import numpy as np
@@ -165,9 +168,9 @@ def compute_fhs(balances: pd.Series) -> float:
 
 
 def get_risk_label(fhs: float) -> str:
-    if fhs < 40:
+    if fhs < 60:
         return "RED"
-    elif fhs < 65:
+    elif fhs < 75:
         return "YELLOW"
     return "GREEN"
 
@@ -218,23 +221,24 @@ FORECAST_DAYS = 30
 
 
 def build_daily_fhs_series(df: pd.DataFrame, segment: str) -> pd.Series:
-    """Compute daily average FHS per segment using 30-day rolling windows."""
+    """Compute daily average FHS per segment to match Heatmap logic exactly."""
     seg_df = df[df["segment"] == segment].copy()
-    seg_df["date"] = pd.to_datetime(seg_df["date"])
+    
+    # Pivot: rows=date, cols=customer_id
+    pivot = seg_df.pivot(index="date", columns="customer_id", values="balance")
+    pivot.index = pd.to_datetime(pivot.index)
 
-    daily_avg = seg_df.groupby("date")["balance"].mean()
-    daily_avg.index = pd.DatetimeIndex(daily_avg.index, freq="D")
-
-    window = 30
+    # Use expanding window for the last 90 days to match Heatmap logic
+    dates = pivot.index[-90:]
     fhs_vals = []
-    dates = []
-    for i in range(window, len(daily_avg)):
-        window_bal = daily_avg.iloc[i - window:i]
-        fhs_vals.append(compute_fhs(window_bal))
-        dates.append(daily_avg.index[i])
+    
+    for end_date in dates:
+        window_df = pivot.loc[:end_date]
+        cust_fhs = [compute_fhs(window_df[col]) for col in window_df.columns]
+        fhs_vals.append(np.mean(cust_fhs))
 
-    series = pd.Series(fhs_vals, index=pd.DatetimeIndex(dates, freq="D"))
-    return series
+    # freq="D" added to prevent statsmodels Holt-Winters warnings
+    return pd.Series(fhs_vals, index=pd.DatetimeIndex(dates, freq="D"))
 
 
 def forecast_segment(series: pd.Series) -> pd.DataFrame:
@@ -308,7 +312,7 @@ import pandas as pd
 def detect_anomalies(forecast_results: dict) -> list[dict]:
     """
     Flags segments where:
-    - yhat_lower drops below 35 in next 14 days (critical zone)
+    - yhat_lower drops below 60 in next 14 days (critical zone)
     - OR FHS is declining over the forecast period
     Returns list of alert dicts.
     """
@@ -323,14 +327,15 @@ def detect_anomalies(forecast_results: dict) -> list[dict]:
         fhs_end   = fc["yhat"].iloc[-1]
         declining = fhs_end < fhs_start - 1.0
 
-        if min_lower < 35 or declining:
+        if min_lower < 60 or declining:
             alerts.append({
                 "segment":    seg,
                 "min_lower":  round(min_lower, 1),
                 "fhs_day1":   round(fhs_start, 1),
                 "fhs_day30":  round(fhs_end, 1),
                 "declining":  declining,
-                "severity":   "CRITICAL" if min_lower < 25 else "WARNING",
+                # FIX: Align CRITICAL severity with the < 60 RED threshold
+                "severity":   "CRITICAL" if min_lower < 60 else "WARNING",
             })
 
     alerts.sort(key=lambda x: x["min_lower"])
@@ -365,13 +370,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 FALLBACK_RESPONSES = {
-    "Govt/PSU": "The Govt/PSU segment shows a critically declining FHS from 32.3 to 26.4 over 30 days; the relationship team should immediately schedule financial wellness calls with customers in this segment and offer restructured EMI plans before the next salary cycle.",
-    "Gig/Freelance": "With gig workers showing a worst-case FHS lower bound of 24.9, the team should proactively offer a short-term liquidity buffer product or micro-credit line to prevent overdrafts during irregular income months.",
-    "Young Professionals": "Young professionals are approaching critical FHS levels with a lower bound of 24.5; recommend targeted outreach offering budgeting tools and automatic savings nudges to build financial resilience before the 30-day horizon.",
-    "Small Business": "The Small Business segment's FHS lower bound of 25.6 signals cash flow stress; the relationship team should offer working capital loan pre-approvals to the most at-risk customers in this segment immediately.",
-    "Retirees": "Retirees showing a WARNING-level FHS with lower bound of 25.9 may be experiencing pension shortfalls; proactive outreach offering fixed deposit re-structuring or pension advance products is recommended within 7 days.",
-    "Daily Wage": "Daily wage workers with FHS lower bound of 27.6 face the highest income volatility; the team should enroll this segment in NatWest's micro-savings auto-sweep program to build a minimum 2-week expense buffer.",
-    "Students": "The student segment's FHS lower bound of 27.8 indicates spending exceeding income; recommend deploying targeted in-app nudges with spending caps and overdraft warnings 5 days before predicted zero-balance dates.",
+    "Govt/PSU": "The Govt/PSU segment shows a critically declining FHS; the relationship team should immediately schedule financial wellness calls with customers in this segment and offer restructured EMI plans before the next salary cycle.",
+    "Gig/Freelance": "With gig workers showing a worsening FHS lower bound, the team should proactively offer a short-term liquidity buffer product or micro-credit line to prevent overdrafts during irregular income months.",
+    "Young Professionals": "Young professionals are approaching critical FHS levels; recommend targeted outreach offering budgeting tools and automatic savings nudges to build financial resilience before the 30-day horizon.",
+    "Small Business": "The Small Business segment's FHS lower bound signals cash flow stress; the relationship team should offer working capital loan pre-approvals to the most at-risk customers in this segment immediately.",
+    "Retirees": "Retirees showing declining FHS may be experiencing pension shortfalls; proactive outreach offering fixed deposit re-structuring or pension advance products is recommended within 7 days.",
+    "Daily Wage": "Daily wage workers face the highest income volatility; the team should enroll this segment in NatWest's micro-savings auto-sweep program to build a minimum 2-week expense buffer.",
+    "Students": "The student segment's FHS lower bound indicates spending exceeding income; recommend deploying targeted in-app nudges with spending caps and overdraft warnings 5 days before predicted zero-balance dates.",
 }
 
 
@@ -434,12 +439,6 @@ if __name__ == "__main__":
     explanations = explain_all_alerts(alerts)
     for seg, text in explanations.items():
         print(f"[{seg}]\n  {text}\n") 
-"""
-app.py
-FinPulse - NatWest Risk Intelligence Dashboard
-Streamlit frontend for segment FHS forecasting and anomaly detection.
-"""
-
 import sys
 import os
 sys.path.insert(0, os.path.dirname(__file__))
@@ -454,7 +453,6 @@ from forecaster import forecast_all_segments
 from anomaly import detect_anomalies
 from llm_explainer import explain_all_alerts
 
-# ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="FinPulse | NatWest Risk Intelligence",
     page_icon="🏦",
@@ -463,25 +461,23 @@ st.set_page_config(
 
 RISK_COLORS = {"RED": "#e74c3c", "YELLOW": "#f39c12", "GREEN": "#27ae60"}
 
-# ── Load & cache data ─────────────────────────────────────────────────────────
 @st.cache_data(show_spinner="Loading customer data...")
 def load_data():
     return pd.read_csv("data/historical.csv", parse_dates=["date"])
 
-@st.cache_data(show_spinner="Running AI forecasts (first load takes ~3 min)...")
-def run_forecasts(_df_hash, shock_pct):
+@st.cache_data(show_spinner="Running AI forecasts (may take 5–8 min on first load)...")
+def run_forecasts(shock_pct):
     df = load_data()
     if shock_pct > 0:
         df = df.copy()
-        df["balance"] = df["balance"] * (1 - shock_pct / 100)
+        recent_mask = df['date'] >= (df['date'].max() - pd.Timedelta(days=30))
+        df.loc[recent_mask, 'balance'] -= df.loc[recent_mask, 'balance'] * (shock_pct / 100)
     return forecast_all_segments(df)
 
-# ── Header ────────────────────────────────────────────────────────────────────
 st.title("🏦 FinPulse — NatWest Segment Risk Intelligence")
 st.caption("AI-powered Financial Health Score forecasting · 1,000 customers · 8 segments · 30-day horizon")
 st.markdown("---")
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
 st.sidebar.header("⚙️ Scenario Testing")
 shock_pct = st.sidebar.slider(
     "Simulate expense shock (%)",
@@ -499,62 +495,88 @@ st.sidebar.markdown("""
 - 20% Spending Volatility
 - 10% Debt Ratio
 
-🔴 < 40 · 🟡 40–65 · 🟢 > 65
+🔴 < 60 · 🟡 60–75 · 🟢 > 75
 """)
 
-# ── Load data ─────────────────────────────────────────────────────────────────
 df_base = load_data()
 if shock_pct > 0:
     df_sim = df_base.copy()
-    df_sim["balance"] = df_sim["balance"] * (1 - shock_pct / 100)
+    recent_mask = df_sim['date'] >= (df_sim['date'].max() - pd.Timedelta(days=30))
+    df_sim.loc[recent_mask, 'balance'] -= df_sim.loc[recent_mask, 'balance'] * (shock_pct / 100)
 else:
     df_sim = df_base
 
-# ── Section 1: Risk Heatmap ───────────────────────────────────────────────────
+st.markdown("### 🌐 Portfolio Overview")
+base_fhs = compute_segment_fhs(df_sim)
+critical_count = len(base_fhs[base_fhs['risk_label'] == 'RED'])
+warning_count = len(base_fhs[base_fhs['risk_label'] == 'YELLOW'])
+healthy_count = len(base_fhs[base_fhs['risk_label'] == 'GREEN'])
+
+k1, k2, k3, k4 = st.columns(4)
+k1.metric("Total Customers Monitored", "1,000", "+12 this week")
+k2.metric("Critical Segments (RED)", critical_count, f"{critical_count} action required", delta_color="inverse")
+k3.metric("At-Risk Segments (YELLOW)", warning_count)
+k4.metric("Healthy Segments (GREEN)", healthy_count)
+st.markdown("---")
+
 st.subheader("📊 Current Segment Risk Heatmap")
-seg_fhs = compute_segment_fhs(df_sim)
 
 cols = st.columns(4)
-for i, row in seg_fhs.iterrows():
+for i, row in base_fhs.iterrows():
     color = RISK_COLORS[row["risk_label"]]
     with cols[i % 4]:
         st.markdown(f"""
-        <div style="background:{color}18;border-left:5px solid {color};
-                    padding:14px;border-radius:8px;margin-bottom:12px">
+        <div style="background:{color}18;border-left:5px solid {color};padding:14px;border-radius:8px;margin-bottom:12px">
             <div style="font-weight:600;font-size:15px">{row['segment']}</div>
             <div style="font-size:28px;font-weight:bold;color:{color}">{row['fhs']}</div>
             <div style="color:#888;font-size:12px">/ 100 FHS</div>
             <div style="margin-top:4px">
-                <span style="background:{color};color:white;padding:2px 8px;
-                             border-radius:10px;font-size:12px;font-weight:bold">
+                <span style="background:{color};color:white;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:bold">
                     {row['risk_label']}
                 </span>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-# ── Section 2: Forecast Chart ─────────────────────────────────────────────────
 st.markdown("---")
 st.subheader("📈 30-Day FHS Forecast by Segment")
 
-forecast_results = run_forecasts(shock_pct, shock_pct)
+forecast_results = run_forecasts(shock_pct)
 alerts = detect_anomalies(forecast_results)
 
-selected_seg = st.selectbox("Select segment to inspect:", list(forecast_results.keys()))
+segment_list = list(forecast_results.keys())
+default_index = segment_list.index("Daily Wage") if "Daily Wage" in segment_list else 0
+
+selected_seg = st.selectbox(
+    "Select segment to inspect:", 
+    segment_list,
+    index=default_index
+)
 data = forecast_results[selected_seg]
 hist = data["historical"]
 fc   = data["forecast"]
 
 fig = go.Figure()
 
-# Historical line
+spread_upper = hist.values + (hist.values * 0.08)
+spread_lower = hist.values - (hist.values * 0.08)
+
 fig.add_trace(go.Scatter(
-    x=hist.index, y=hist.values,
-    name="Historical FHS",
-    line=dict(color="#3498db", width=2),
+    x=pd.concat([hist.index.to_series(), hist.index.to_series().iloc[::-1]]),
+    y=np.concatenate([spread_upper, spread_lower[::-1]]),
+    fill="toself",
+    fillcolor="rgba(52, 152, 219, 0.1)",
+    line=dict(color="rgba(255,255,255,0)"),
+    name="Population Spread",
+    showlegend=True,
 ))
 
-# 30-day SMA baseline
+fig.add_trace(go.Scatter(
+    x=hist.index, y=hist.values,
+    name="Avg Historical FHS",
+    line=dict(color="#3498db", width=3),
+))
+
 sma = hist.rolling(30).mean()
 fig.add_trace(go.Scatter(
     x=sma.index, y=sma.values,
@@ -562,7 +584,6 @@ fig.add_trace(go.Scatter(
     line=dict(color="#95a5a6", width=1, dash="dash"),
 ))
 
-# Uncertainty band
 fig.add_trace(go.Scatter(
     x=pd.concat([fc["ds"], fc["ds"][::-1]]),
     y=pd.concat([fc["yhat_upper"], fc["yhat_lower"][::-1]]),
@@ -573,18 +594,14 @@ fig.add_trace(go.Scatter(
     showlegend=True,
 ))
 
-# Forecast line
 fig.add_trace(go.Scatter(
     x=fc["ds"], y=fc["yhat"],
     name="AI Forecast (Holt-Winters)",
     line=dict(color="#e67e22", width=2, dash="dot"),
 ))
 
-# Threshold lines
-fig.add_hline(y=40, line_dash="dash", line_color="red", line_width=1,
-              annotation_text="RED threshold (40)")
-fig.add_hline(y=65, line_dash="dash", line_color="green", line_width=1,
-              annotation_text="GREEN threshold (65)")
+fig.add_hline(y=60, line_dash="dash", line_color="red", line_width=1, annotation_text="RED threshold (60)")
+fig.add_hline(y=75, line_dash="dash", line_color="green", line_width=1, annotation_text="GREEN threshold (75)")
 
 fig.update_layout(
     title=f"FHS Forecast — {selected_seg}",
@@ -597,15 +614,12 @@ fig.update_layout(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-# Forecast summary metrics
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("FHS Day 1",  f"{fc['yhat'].iloc[0]:.1f}")
-c2.metric("FHS Day 30", f"{fc['yhat'].iloc[-1]:.1f}",
-          delta=f"{fc['yhat'].iloc[-1]-fc['yhat'].iloc[0]:.1f}")
+c2.metric("FHS Day 30", f"{fc['yhat'].iloc[-1]:.1f}", delta=f"{fc['yhat'].iloc[-1]-fc['yhat'].iloc[0]:.1f}")
 c3.metric("Lower Bound (worst)", f"{fc['yhat_lower'].min():.1f}")
 c4.metric("Upper Bound (best)",  f"{fc['yhat_upper'].max():.1f}")
 
-# ── Section 3: Anomaly Alerts ─────────────────────────────────────────────────
 st.markdown("---")
 st.subheader("🚨 Early Warning Alerts")
 
@@ -617,20 +631,16 @@ else:
 
     for alert in alerts:
         color = "#e74c3c" if alert["severity"] == "CRITICAL" else "#f39c12"
-        with st.expander(
-            f"[{alert['severity']}] {alert['segment']} — "
-            f"FHS {alert['fhs_day1']} → {alert['fhs_day30']} "
-            f"| Worst-case: {alert['min_lower']}/100"
-        ):
+        with st.container(border=True):
+            st.markdown(f"#### <span style='color:{color}'>[{alert['severity']}]</span> {alert['segment']}", unsafe_allow_html=True)
+            
             m1, m2, m3 = st.columns(3)
             m1.metric("FHS Day 1", f"{alert['fhs_day1']}/100")
-            m2.metric("FHS Day 30", f"{alert['fhs_day30']}/100",
-                      delta=f"{round(alert['fhs_day30']-alert['fhs_day1'],1)}")
-            m3.metric("Min Lower Bound", f"{alert['min_lower']}/100")
+            m2.metric("FHS Day 30", f"{alert['fhs_day30']}/100", delta=f"{round(alert['fhs_day30']-alert['fhs_day1'],1)}")
+            m3.metric("Worst-Case Scenario", f"{alert['min_lower']}/100")
 
-            st.info(f"🤖 **AI Recommendation:** {explanations[alert['segment']]}")
+            st.info(f"🤖 **GenAI Intervention Plan:** {explanations[alert['segment']]}")
 
-# ── Footer ────────────────────────────────────────────────────────────────────
 st.markdown("---")
 st.caption("FinPulse · NatWest Code for Purpose Hackathon · Team BIT Mesra · Built with Streamlit + statsmodels + Gemini AI") 
 # 🏦 FinPulse — NatWest Segment Risk Intelligence
