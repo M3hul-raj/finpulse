@@ -125,7 +125,7 @@ Expected: 12 passed.
                        │      │      │      │
           ┌────────────▼┐ ┌───▼────┐ ┌▼─────┐ ┌▼──────────────┐
           │ FHS         │ │Forecast│ │Anomaly│ │ LLM Explainer │
-          │ Calculator  │ │  Engine│ │Detect.│ │ (Gemini API)  │
+          │ Calculator  │ │  Engine│ │Detect.│ │(Gemini + Groq)│
           │ (fhs_calc.) │ │(forec.)│ │(anom.)│ │ (llm_expl.)   │
           └──────┬──────┘ └───┬────┘ └┬─────┘ └┬──────────────┘
                  │            │       │        │
@@ -159,7 +159,7 @@ FinPulse-NatWest/
 │   ├── fhs_calculator.py      # Financial Health Score computation
 │   ├── forecaster.py          # Holt-Winters 30-day forecast engine
 │   ├── anomaly.py             # Risk anomaly detection
-│   ├── llm_explainer.py       # Gemini AI intervention recommendations
+│   ├── llm_explainer.py       # Multi-provider AI intervention recommendations
 │   └── customer_generator.py  # Synthetic data generation (1,000 customers)
 ├── data/                      # Generated data (not tracked in git)
 │   └── historical.csv         # 730,000 rows of synthetic balance data
@@ -283,7 +283,7 @@ These ensure the system communicates uncertainty honestly rather than producing 
 ## ix. Limitations
 
 - Synthetic data only — no real NatWest customer data used
-- LLM recommendations use curated fallback responses due to Gemini free-tier rate limits; live API calls are attempted first on every run
+- LLM recommendations use a multi-provider fallback chain (Gemini → Groq → curated); free-tier rate limits may occasionally require fallback to curated responses
 - Forecast accuracy depends on synthetic data patterns; real-world deployment would require historical transaction data
 - FHS weights (0.4, 0.3, 0.2, 0.1) are heuristic — production deployment would use ML-optimized weights trained on historical default data
 - First-time dashboard load takes 3–5 minutes due to FHS computation; subsequent loads are cached

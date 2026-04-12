@@ -208,4 +208,4 @@ else:
             st.info(f"🤖 **GenAI Intervention Plan:** {explanations[alert['segment']]}")
 
 st.markdown("---")
-st.caption("FinPulse · NatWest Code for Purpose Hackathon · Team BIT Mesra · Built with Streamlit + statsmodels + Gemini AI")
+st.caption("FinPulse · NatWest Code for Purpose Hackathon · Team BIT Mesra · Built with Flask + statsmodels + Gemini + Groq AI")
