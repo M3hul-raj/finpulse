@@ -2,10 +2,16 @@
 api_server.py
 Flask REST API wrapping existing FinPulse modules.
 Serves JSON data to the custom frontend dashboard.
+
+Performance features:
+  - Thread-safe caching with locks (prevents duplicate computation)
+  - Background pre-computation of forecasts on server startup
+  - Lazy-loaded heatmap and portfolio data
 """
 
 import sys
 import os
+import threading
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -25,14 +31,27 @@ CORS(app)
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
-# ── Cache ────────────────────────────────────────────────────────────────────
+# ── Thread-safe Cache ────────────────────────────────────────────────────────
 _cache = {}
+_locks = {}
+_global_lock = threading.Lock()
+
+
+def _get_lock(key: str) -> threading.Lock:
+    """Get or create a lock for a specific cache key."""
+    with _global_lock:
+        if key not in _locks:
+            _locks[key] = threading.Lock()
+        return _locks[key]
+
 
 def _load_data():
     key = "raw_data"
-    if key not in _cache:
-        print("Loading customer data...")
-        _cache[key] = pd.read_csv(DATA_DIR / "historical.csv", parse_dates=["date"])
+    lock = _get_lock(key)
+    with lock:
+        if key not in _cache:
+            print("Loading customer data...")
+            _cache[key] = pd.read_csv(DATA_DIR / "historical.csv", parse_dates=["date"])
     return _cache[key]
 
 
@@ -47,19 +66,30 @@ def _apply_shock(df, shock_pct):
 
 def _get_forecasts(shock_pct):
     key = f"forecasts_{shock_pct}"
-    if key not in _cache:
-        print(f"Running forecasts (shock={shock_pct}%)... This may take several minutes.")
-        df = _apply_shock(_load_data(), shock_pct)
-        _cache[key] = forecast_all_segments(df)
+    lock = _get_lock(key)
+    with lock:
+        if key not in _cache:
+            print(f"Running forecasts (shock={shock_pct}%)... This may take a few minutes.")
+            df = _apply_shock(_load_data(), shock_pct)
+            _cache[key] = forecast_all_segments(df)
     return _cache[key]
 
 
 def _get_heatmap(shock_pct):
     key = f"heatmap_{shock_pct}"
-    if key not in _cache:
-        df = _apply_shock(_load_data(), shock_pct)
-        _cache[key] = compute_segment_fhs(df)
+    lock = _get_lock(key)
+    with lock:
+        if key not in _cache:
+            df = _apply_shock(_load_data(), shock_pct)
+            _cache[key] = compute_segment_fhs(df)
     return _cache[key]
+
+
+def _precompute_forecasts():
+    """Background thread: pre-compute baseline forecasts on startup."""
+    print("Background: Pre-computing baseline forecasts...")
+    _get_forecasts(0)
+    print("Background: Baseline forecasts ready!")
 
 
 # ── Static File Serving ──────────────────────────────────────────────────────
@@ -161,10 +191,16 @@ def api_alerts():
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
+    import webbrowser
+
     print("=" * 60)
     print("  FinPulse API Server")
     print("  Dashboard: http://localhost:5000")
     print("=" * 60)
     # Pre-load data
     _load_data()
+    # Start background forecast pre-computation
+    threading.Thread(target=_precompute_forecasts, daemon=True).start()
+    # Auto-open browser
+    threading.Timer(1.0, lambda: webbrowser.open("http://localhost:5000")).start()
     app.run(debug=False, port=5000, host="0.0.0.0")
