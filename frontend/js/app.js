@@ -31,6 +31,21 @@ async function fetchJSON(endpoint) {
   }
 }
 
+async function fetchJSONWithRetry(endpoint, maxRetries = 60, delay = 3000) {
+  for (let i = 0; i <= maxRetries; i++) {
+    const res = await fetch(`${API_BASE}${endpoint}`);
+    if (res.status === 202) {
+      if (i < maxRetries) {
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      throw new Error('Server computation timed out');
+    }
+    if (!res.ok) throw new Error(`API Error: ${res.status}`);
+    return await res.json();
+  }
+}
+
 // ── Loading Overlay ────────────────────────────────────────────
 function showLoading(text) {
   const overlay = $('#loadingOverlay');
@@ -158,7 +173,7 @@ async function loadForecast() {
   const segment = state.selectedSegment;
   $('#chartTitleSegment').textContent = segment;
 
-  const data = await fetchJSON(`/api/forecast?segment=${encodeURIComponent(segment)}&shock=${state.shock}`);
+  const data = await fetchJSONWithRetry(`/api/forecast?segment=${encodeURIComponent(segment)}&shock=${state.shock}`);
   const hist = data.historical;
   const fc = data.forecast;
 
@@ -455,7 +470,7 @@ function generateForecastSummary(segment, day1, day30, delta, minLower, maxUpper
 // ALERTS
 // ══════════════════════════════════════════════════════════════
 async function loadAlerts() {
-  const alerts = await fetchJSON(`/api/alerts?shock=${state.shock}`);
+  const alerts = await fetchJSONWithRetry(`/api/alerts?shock=${state.shock}`);
   const banner = $('#alertsBanner');
   const list = $('#alertsList');
 

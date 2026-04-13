@@ -144,7 +144,14 @@ def api_heatmap():
 def api_forecast():
     shock = int(request.args.get("shock", 0))
     segment = request.args.get("segment", "Daily Wage")
-    forecasts = _get_forecasts(shock)
+
+    # Non-blocking: if forecasts aren't cached yet, return 202 and let background compute
+    key = f"forecasts_{shock}"
+    if key not in _cache:
+        threading.Thread(target=_get_forecasts, args=(shock,), daemon=True).start()
+        return jsonify({"status": "computing"}), 202
+
+    forecasts = _cache[key]
 
     if segment not in forecasts:
         return jsonify({"error": f"Segment '{segment}' not found"}), 404
@@ -171,7 +178,14 @@ def api_forecast():
 @app.route("/api/alerts")
 def api_alerts():
     shock = int(request.args.get("shock", 0))
-    forecasts = _get_forecasts(shock)
+
+    # Non-blocking: if forecasts aren't cached yet, return 202 and let background compute
+    key = f"forecasts_{shock}"
+    if key not in _cache:
+        threading.Thread(target=_get_forecasts, args=(shock,), daemon=True).start()
+        return jsonify({"status": "computing"}), 202
+
+    forecasts = _cache[key]
     alerts = detect_anomalies(forecasts)
     explanations = explain_all_alerts(alerts)
 
