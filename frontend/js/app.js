@@ -89,7 +89,7 @@ function animateValue(el, start, end, duration = 1200) {
 // PORTFOLIO OVERVIEW (KPIs)
 // ══════════════════════════════════════════════════════════════
 async function loadPortfolio() {
-  const data = await fetchJSON(`/api/portfolio?shock=${state.shock}`);
+  const data = await fetchJSONWithRetry(`/api/portfolio?shock=${state.shock}`);
 
   animateValue($('#kpiTotal'), 0, data.total_customers);
   animateValue($('#kpiCritical'), 0, data.critical);
@@ -103,7 +103,7 @@ async function loadPortfolio() {
 // RISK HEATMAP
 // ══════════════════════════════════════════════════════════════
 async function loadHeatmap() {
-  const data = await fetchJSON(`/api/heatmap?shock=${state.shock}`);
+  const data = await fetchJSONWithRetry(`/api/heatmap?shock=${state.shock}`);
   const grid = $('#heatmapGrid');
   grid.innerHTML = '';
 
@@ -661,10 +661,10 @@ async function init() {
   try {
     // Load segments first (fast)
     await loadSegments();
-    $('#loadingStatus').textContent = 'Loading portfolio data...';
+    $('#loadingStatus').textContent = 'Computing risk scores... This may take a minute on first load.';
 
     // Store baseline heatmap (no shock) for scenario comparison
-    state.baselineHeatmap = await fetchJSON('/api/heatmap?shock=0');
+    state.baselineHeatmap = await fetchJSONWithRetry('/api/heatmap?shock=0');
 
     // Load fast data → show dashboard → then lazy-load slow data
     await Promise.all([loadPortfolio(), loadHeatmap()]);

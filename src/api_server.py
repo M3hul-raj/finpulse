@@ -31,6 +31,13 @@ CORS(app)
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
+# Known segments — hardcoded so /api/segments never touches the CSV.
+# Must match customer_generator.SEGMENTS.
+KNOWN_SEGMENTS = [
+    "Daily Wage", "Gig/Freelance", "Govt/PSU", "IT Salaried",
+    "Retirees", "Small Business", "Students", "Young Professionals",
+]
+
 # ── Thread-safe Cache ────────────────────────────────────────────────────────
 _cache = {}
 _locks = {}
@@ -85,8 +92,13 @@ def _get_heatmap(shock_pct):
     return _cache[key]
 
 
-def _precompute_forecasts():
-    """Background thread: pre-compute baseline forecasts on startup."""
+def _background_precompute():
+    """Background thread: pre-compute heatmap + forecasts after server is live."""
+    import time
+    time.sleep(2)  # Let gunicorn bind the port before doing heavy work
+    print("Background: Pre-computing baseline heatmap...")
+    _get_heatmap(0)
+    print("Background: Heatmap ready!")
     print("Background: Pre-computing baseline forecasts...")
     _get_forecasts(0)
     print("Background: Baseline forecasts ready!")
@@ -106,15 +118,21 @@ def serve_static(filepath):
 # ── API Endpoints ────────────────────────────────────────────────────────────
 @app.route("/api/segments")
 def api_segments():
-    df = _load_data()
-    segments = sorted(df["segment"].unique().tolist())
-    return jsonify(segments)
+    # Hardcoded — no CSV dependency, instant response for Render health check
+    return jsonify(KNOWN_SEGMENTS)
 
 
 @app.route("/api/portfolio")
 def api_portfolio():
     shock = int(request.args.get("shock", 0))
-    heatmap_df = _get_heatmap(shock)
+
+    # Non-blocking: return 202 if heatmap not cached yet
+    key = f"heatmap_{shock}"
+    if key not in _cache:
+        threading.Thread(target=_get_heatmap, args=(shock,), daemon=True).start()
+        return jsonify({"status": "computing"}), 202
+
+    heatmap_df = _cache[key]
     critical = int(len(heatmap_df[heatmap_df["risk_label"] == "RED"]))
     warning = int(len(heatmap_df[heatmap_df["risk_label"] == "YELLOW"]))
     healthy = int(len(heatmap_df[heatmap_df["risk_label"] == "GREEN"]))
@@ -129,7 +147,14 @@ def api_portfolio():
 @app.route("/api/heatmap")
 def api_heatmap():
     shock = int(request.args.get("shock", 0))
-    heatmap_df = _get_heatmap(shock)
+
+    # Non-blocking: return 202 if heatmap not cached yet
+    key = f"heatmap_{shock}"
+    if key not in _cache:
+        threading.Thread(target=_get_heatmap, args=(shock,), daemon=True).start()
+        return jsonify({"status": "computing"}), 202
+
+    heatmap_df = _cache[key]
     result = []
     for _, row in heatmap_df.iterrows():
         result.append({
@@ -203,12 +228,11 @@ def api_alerts():
     return jsonify(result)
 
 
-# ── Startup (runs on import — works with both gunicorn and direct execution) ──
-# NOTE: Do NOT call _load_data() here synchronously — it blocks module import
-# while reading a 26MB CSV, which prevents gunicorn from binding the port in time
-# for Render's health check. Data is lazy-loaded by endpoints on first request.
-# The background thread loads data internally via _get_forecasts() → _load_data().
-threading.Thread(target=_precompute_forecasts, daemon=True).start()
+# ── Startup ──────────────────────────────────────────────────────────────────
+# All heavy work (CSV read, FHS computation, forecasting) runs in a background
+# thread with a 2-second delay, so gunicorn binds the port FIRST and the Render
+# health check (/api/segments) passes instantly.
+threading.Thread(target=_background_precompute, daemon=True).start()
 
 
 # ── Main (local development only) ────────────────────────────────────────────
