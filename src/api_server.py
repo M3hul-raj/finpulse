@@ -190,12 +190,11 @@ def api_alerts():
 
 
 # ── Startup (runs on import — works with both gunicorn and direct execution) ──
-def _startup():
-    """Pre-load data and kick off background forecast computation."""
-    _load_data()
-    threading.Thread(target=_precompute_forecasts, daemon=True).start()
-
-_startup()
+# NOTE: Do NOT call _load_data() here synchronously — it blocks module import
+# while reading a 26MB CSV, which prevents gunicorn from binding the port in time
+# for Render's health check. Data is lazy-loaded by endpoints on first request.
+# The background thread loads data internally via _get_forecasts() → _load_data().
+threading.Thread(target=_precompute_forecasts, daemon=True).start()
 
 
 # ── Main (local development only) ────────────────────────────────────────────
