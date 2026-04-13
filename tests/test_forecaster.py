@@ -1,6 +1,9 @@
 """
 test_forecaster.py
 Unit tests for FinPulse core modules.
+
+All tests are self-contained — no pre-generated CSV files required.
+Run from project root: pytest tests/
 """
 
 import sys
@@ -15,31 +18,37 @@ from fhs_calculator import compute_fhs, get_risk_label, compute_segment_fhs
 from anomaly import detect_anomalies
 
 
+# ── Shared Fixture ────────────────────────────────────────────────────────────
+# Generates 730K rows once per test session instead of per-test,
+# and eliminates the dependency on data/historical.csv.
+
+@pytest.fixture(scope="session")
+def customer_data():
+    """Generate full synthetic dataset once for the entire test session."""
+    return generate_all_customers()
+
+
 # ── customer_generator tests ──────────────────────────────────────────────────
 
-def test_generated_data_shape():
-    """Generated CSV must have 730,000 rows and 4 columns."""
-    df = generate_all_customers()
-    assert df.shape == (730000, 4), f"Expected (730000, 4), got {df.shape}"
+def test_generated_data_shape(customer_data):
+    """Generated data must have 730,000 rows and 4 columns."""
+    assert customer_data.shape == (730000, 4), f"Expected (730000, 4), got {customer_data.shape}"
 
 
-def test_generated_data_columns():
+def test_generated_data_columns(customer_data):
     """Generated data must have correct column names."""
-    df = generate_all_customers()
-    assert set(df.columns) == {"date", "balance", "customer_id", "segment"}
+    assert set(customer_data.columns) == {"date", "balance", "customer_id", "segment"}
 
 
-def test_all_segments_present():
+def test_all_segments_present(customer_data):
     """All 8 segments must be present in generated data."""
-    df = generate_all_customers()
-    assert set(df["segment"].unique()) == set(SEGMENTS)
+    assert set(customer_data["segment"].unique()) == set(SEGMENTS)
 
 
-def test_segment_customer_counts():
+def test_segment_customer_counts(customer_data):
     """Each segment must have exactly 125 customers."""
-    df = generate_all_customers()
     for seg in SEGMENTS:
-        cust_count = df[df["segment"] == seg]["customer_id"].nunique()
+        cust_count = customer_data[customer_data["segment"] == seg]["customer_id"].nunique()
         assert cust_count == 125, f"{seg} has {cust_count} customers, expected 125"
 
 
@@ -69,18 +78,16 @@ def test_risk_labels():
     assert get_risk_label(90)  == "GREEN"
 
 
-def test_segment_fhs_returns_all_segments():
+def test_segment_fhs_returns_all_segments(customer_data):
     """compute_segment_fhs must return a row for all 8 segments."""
-    df = pd.read_csv("data/historical.csv", parse_dates=["date"])
-    result = compute_segment_fhs(df)
+    result = compute_segment_fhs(customer_data)
     assert len(result) == 8
     assert set(result["segment"]) == set(SEGMENTS)
 
 
-def test_segment_fhs_columns():
+def test_segment_fhs_columns(customer_data):
     """compute_segment_fhs output must have correct columns."""
-    df = pd.read_csv("data/historical.csv", parse_dates=["date"])
-    result = compute_segment_fhs(df)
+    result = compute_segment_fhs(customer_data)
     assert set(result.columns) == {"segment", "fhs", "risk_label"}
 
 

@@ -70,8 +70,8 @@ def get_risk_label(fhs: float) -> str:
 
 def compute_segment_fhs(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Compute daily average FHS per segment.
-    Returns DataFrame with columns: date, segment, fhs, risk_label
+    Compute average FHS per segment.
+    Returns DataFrame with columns: segment, fhs, risk_label
     """
     results = []
     for segment, seg_df in df.groupby("segment"):

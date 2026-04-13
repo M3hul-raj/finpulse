@@ -96,6 +96,12 @@ python src/api_server.py
 ```
 > *First startup requires ~45 seconds for initial background forecast caching; subsequent API requests operate with <50ms latency.*
 
+**5. Run Tests (optional)**
+```bash
+pytest tests/ -v
+```
+> *All 12 tests are fully self-contained — no pre-generated data files required. Tests generate synthetic data internally via a shared session fixture.*
+
 ---
 
 ## v. Limitations
