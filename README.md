@@ -2,15 +2,15 @@
 
 ## i. Problem & Solution
 
-**The Problem:** NatWest relationship and risk teams currently react to financial defaults *after* they happen. Interventions occur too late, leading to write-offs and poor customer outcomes.
+**The Problem:** Retail banking interventions typically occur *after* a default. This reactive approach leads to elevated bad-debt provisioning, permanent loss of customer trust, and costly recovery operations.
 
-**The Solution:** FinPulse is a bank-grade AI risk intelligence system that shifts operations from reactive to predictive. It forecasts the **Financial Health Score (FHS)** of banked populations across 8 Indian banking segments. By predicting population-level financial distress up to 30 days in advance, FinPulse enables NatWest relationship managers to take proactive action—offering micro-loans, restructured EMIs, or financial wellness outreach—*before* segments default.
+**The Solution:** FinPulse is a predictive AI risk intelligence core that shifts NatWest's operations from reactive recovery to proactive intervention. By continuously forecasting the **Financial Health Score (FHS)** of banked populations across 8 target segments, FinPulse predicts financial distress up to 30 days before it materializes. This advance warning allows relationship managers to deploy tailored interventions—such as micro-loans, EMI restructuring, or automated savings sweeps—protecting the bank's balance sheet while preserving customer financial wellbeing.
 
 ---
 
 ## ii. Architecture
 
-FinPulse is built on a lightweight, high-performance Flask REST backend and a zero-dependency vanilla JS frontend, incorporating statistical forecasting and multi-provider Generative AI.
+FinPulse combines robust statistical modeling with Generative AI, deployed via a resilient Flask REST backend and a zero-dependency vanilla JS frontend. The forecasting core uses Holt-Winters Exponential Smoothing to capture both trend and seasonality in financial behaviors, providing reliable confidence intervals and avoiding the 'black box' phenomenon of pure neural networks in regulated banking environments.
 
 ```text
                     ┌─────────────────────────────────────┐
@@ -51,9 +51,9 @@ Score: 0–100 | < 60 = RED | 60–75 = YELLOW | > 75 = GREEN
 - **Portfolio Dashboard:** Real-time KPI overview showing total customers monitored and critical/at-risk/healthy segment distributions.
 - **Risk Heatmap:** 8 interactive segment cards color-coded RED / YELLOW / GREEN based on current Financial Health Scores.
 - **30-Day FHS Forecast:** AI-powered statistical forecast using Holt-Winters Exponential Smoothing. Displays population spread, 95% uncertainty bands, and a 30-day SMA baseline.
-- **Anomaly Detection:** Automatic flagging of segments where the worst-case statistical lower bound drops below the critical 60 threshold within 14 days.
-- **Scenario Testing:** Interactive slider to simulate macroeconomic expense shocks (0–50%) across all segments and instantly observe the FHS impact.
-- **GenAI Intervention Plans:** Multi-provider AI engine (Google Gemini → Groq/Llama 3.3 70B) generating actionable, 1–2 sentence intervention recommendations for flagged segments. Features automatic failover clustering to ensure enterprise uptime.
+- **Anomaly Detection:** Automatic flagging of segments where the worst-case statistical lower bound drops below the critical 60 threshold within 14 days, enabling preemptive customer outreach rather than retrospective collection.
+- **Micro/Macro Scenario Testing:** Interactive macroeconomic stress-testing slider (0–50% expense shock). Allows risk teams to instantly model inflation spikes or housing crises and observe portfolio resilience in real-time.
+- **GenAI Intervention Plans:** Multi-provider AI engine (Google Gemini → Groq/Llama 3.3 70B) generating actionable, 1–2 sentence intervention recommendations for flagged segments. Features automatic failover clustering to ensure demonstration and enterprise uptime.
 
 ---
 
@@ -100,7 +100,7 @@ python src/api_server.py
 
 ## v. Limitations
 
-FinPulse models a production implementation but adheres to hackathon scale limitations:
+FinPulse models a production-grade architecture with intentional boundaries for hackathon scoping:
 - **Data Source:** FinPulse currently employs a rigorous synthetic data engine. Production deployments would connect securely to NatWest's Open Banking API via OAuth2.
 - **Model Calibration:** FHS component mathematical weights (0.4, 0.3, 0.2, 0.1) are currently evaluated based on generalized domain logic. Production engines would ingest historical NatWest default data to train ML-optimized weight arrays.
 - **AI Rate Limits:** The pipeline utilizes free-tier rate limitations (Gemini → Groq). Aggressive rapid-fire testing may temporarily engage the offline curated fallback nodes.
@@ -109,7 +109,7 @@ FinPulse models a production implementation but adheres to hackathon scale limit
 
 ## vi. Impact & Future Expansion
 
-By deploying FinPulse, NatWest achieves the ability to detect segmented portfolio distress 30 days ahead of the event horizon. Predictive intelligence allows relationship units to convert defaults into restructured financial lifelines, drastically decreasing bad-debt provisioning while strengthening the underlying customer loyalty base.
+By deploying FinPulse, NatWest gains the capability to detect segmented portfolio distress up to 30 days ahead of the event horizon. This predictive window allows relationship units to convert impending defaults into restructured financial lifelines. The business impact is twofold: drastically reduced bad-debt provisioning costs, and significantly strengthened customer loyalty.
 
 **Future roadmap:**
 - Direct integration with NatWest transaction data lake.

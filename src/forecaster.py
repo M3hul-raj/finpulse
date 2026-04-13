@@ -12,6 +12,7 @@ Performance optimizations:
 import numpy as np
 import pandas as pd
 from statsmodels.tsa.holtwinters import SimpleExpSmoothing
+import zlib
 from fhs_calculator import compute_fhs, get_risk_label
 
 FORECAST_DAYS = 30
@@ -33,10 +34,12 @@ def build_daily_fhs_series(df: pd.DataFrame, segment: str) -> pd.Series:
     pivot = seg_df.pivot(index="date", columns="customer_id", values="balance")
     pivot.index = pd.to_datetime(pivot.index)
 
-    # Sample customers for performance (30 is statistically representative)
-    all_customers = list(pivot.columns)
+    # Sample customers deterministically (use stable seed per segment)
+    all_customers = sorted(list(pivot.columns))
+    seed_val = zlib.crc32(segment.encode("utf-8"))
+    rng = np.random.RandomState(seed_val)
     sample_size = min(SAMPLE_CUSTOMERS, len(all_customers))
-    sampled = np.random.choice(all_customers, size=sample_size, replace=False)
+    sampled = rng.choice(all_customers, size=sample_size, replace=False)
     pivot = pivot[sampled]
 
     # Use last LOOKBACK_DAYS for the time series

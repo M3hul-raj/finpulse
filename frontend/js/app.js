@@ -661,7 +661,7 @@ async function init() {
     showForecastLoading(true);
     showAlertsLoading(true);
 
-    // Fire forecast and alerts in parallel (these will take minutes)
+    // Fire forecast and alerts in parallel
     loadForecast().then(() => {
       showForecastLoading(false);
       state.forecastLoaded = true;
