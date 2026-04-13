@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Ensure data directory exists (fresh deploys won't have it since CSVs are gitignored)
+mkdir -p data
+
 # Generate synthetic data if not present (CSV is gitignored)
 if [ ! -f data/historical.csv ]; then
     echo "Generating synthetic customer data..."

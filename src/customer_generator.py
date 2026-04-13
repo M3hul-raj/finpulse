@@ -104,6 +104,7 @@ if __name__ == "__main__":
     print("Generating 1,000 customers...")
     df = generate_all_customers()
     out_path = Path("data/historical.csv")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(out_path, index=False)
     print(f"Done. Shape: {df.shape}")
     print(df.head())
