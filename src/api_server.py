@@ -189,7 +189,16 @@ def api_alerts():
     return jsonify(result)
 
 
-# ── Main ─────────────────────────────────────────────────────────────────────
+# ── Startup (runs on import — works with both gunicorn and direct execution) ──
+def _startup():
+    """Pre-load data and kick off background forecast computation."""
+    _load_data()
+    threading.Thread(target=_precompute_forecasts, daemon=True).start()
+
+_startup()
+
+
+# ── Main (local development only) ────────────────────────────────────────────
 if __name__ == "__main__":
     import webbrowser
 
@@ -197,10 +206,6 @@ if __name__ == "__main__":
     print("  FinPulse API Server")
     print("  Dashboard: http://localhost:5000")
     print("=" * 60)
-    # Pre-load data
-    _load_data()
-    # Start background forecast pre-computation
-    threading.Thread(target=_precompute_forecasts, daemon=True).start()
     # Auto-open browser
     threading.Timer(1.0, lambda: webbrowser.open("http://localhost:5000")).start()
     app.run(debug=False, port=5000, host="0.0.0.0")
