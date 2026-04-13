@@ -39,7 +39,7 @@
         <div class="scenario-card">
           <label for="shockSlider">Simulate expense shock</label>
           <div class="scenario-slider-wrap">
-            <input type="range" id="shockSlider" class="scenario-slider" min="0" max="50" value="0" step="5">
+            <input type="range" id="shockSlider" class="scenario-slider" min="0" max="50" value="0" step="5" aria-label="Simulate expense shock percentage">
           </div>
           <div class="scenario-value">
             <span class="scenario-badge" id="shockValue">0%</span>
@@ -93,7 +93,7 @@
 
       <!-- Page Header -->
       <header class="page-header">
-        <h1><span class="emoji">🏦</span> FinPulse — NatWest Segment Risk Intelligence</h1>
+        <h1><span class="emoji" role="img" aria-label="bank">🏦</span> FinPulse — NatWest Segment Risk Intelligence</h1>
         <div class="subtitle">
           AI-powered Financial Health Score forecasting
           <span class="header-sep">·</span>
@@ -158,12 +158,12 @@
       <!-- ═══ FORECAST ═══ -->
       <section class="section" id="forecastSection">
         <div class="section-header">
-          <div class="section-icon amber">📈</div>
-          <h2>30-Day FHS Forecast by Segment</h2>
+          <div class="section-icon amber" role="img" aria-label="chart">📈</div>
+          <h2>30-Day Forecast</h2>
         </div>
 
         <div class="forecast-controls">
-          <select class="segment-select" id="segmentSelect">
+          <select class="segment-select" id="segmentSelect" aria-label="Select segment for forecast">
             <!-- Dynamically populated -->
           </select>
         </div>
@@ -222,7 +222,7 @@
           <span class="footer-tag">Flask</span>
           <span class="footer-tag">Chart.js</span>
           <span class="footer-tag">statsmodels</span>
-          <span class="footer-tag">Gemini + Groq AI</span>
+          <span class="footer-tag">Gemini AI + Groq / Llama 3.3</span>
         </div>
       </footer>
 

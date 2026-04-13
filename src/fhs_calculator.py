@@ -8,6 +8,8 @@ Score range: 0-100. <60=RED, 60-75=YELLOW, >75=GREEN
 import numpy as np
 import pandas as pd
 
+np.random.seed(42)  # Reproducible sampling
+
 
 def compute_balance_trend(balances: pd.Series) -> float:
     """Score 0-100: how consistently the balance grows over time."""
@@ -76,7 +78,13 @@ def compute_segment_fhs(df: pd.DataFrame) -> pd.DataFrame:
         pivot = seg_df.pivot(index="date", columns="customer_id", values="balance")
         pivot.index = pd.to_datetime(pivot.index)
 
-        # Compute FHS for each customer, then average per day
+        # Sample customers for performance (30 is statistically representative)
+        all_customers = list(pivot.columns)
+        sample_size = min(30, len(all_customers))
+        sampled = np.random.choice(all_customers, size=sample_size, replace=False)
+        pivot = pivot[sampled]
+
+        # Compute FHS for each sampled customer, then average
         customer_fhs = {}
         for cid in pivot.columns:
             customer_fhs[cid] = compute_fhs(pivot[cid])

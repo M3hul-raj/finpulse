@@ -21,9 +21,14 @@ const $$ = (sel) => document.querySelectorAll(sel);
 
 // ── API Helpers ────────────────────────────────────────────────
 async function fetchJSON(endpoint) {
-  const res = await fetch(`${API_BASE}${endpoint}`);
-  if (!res.ok) throw new Error(`API Error: ${res.status}`);
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE}${endpoint}`);
+    if (!res.ok) throw new Error(`API Error: ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.warn(`Network error fetching ${endpoint}:`, err.message);
+    throw err;
+  }
 }
 
 // ── Loading Overlay ────────────────────────────────────────────
@@ -587,6 +592,8 @@ async function refreshDashboard() {
     }).catch(err => {
       console.error('Forecast load failed:', err);
       showForecastLoading(false);
+      const ctx = $('#forecastChart');
+      if (ctx && ctx.parentNode) ctx.parentNode.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);">⚠ Failed to load forecast. Server may be unreachable.</div>';
     });
 
     loadAlerts().then(() => {
@@ -594,6 +601,7 @@ async function refreshDashboard() {
     }).catch(err => {
       console.error('Alerts load failed:', err);
       showAlertsLoading(false);
+      $('#alertsBanner').innerHTML = '<div class="alert-banner danger">⚠ Failed to load risk alerts. Please try again later.</div>';
     });
   } catch (err) {
     console.error('Dashboard refresh failed:', err);
@@ -607,7 +615,7 @@ function showForecastLoading(show) {
     if (!container.querySelector('.inline-loader')) {
       const loader = document.createElement('div');
       loader.className = 'inline-loader';
-      loader.innerHTML = '<div class="inline-spinner"></div><span>Running AI forecasts across all segments... This takes 3-5 minutes on first load</span>';
+      loader.innerHTML = '<div class="inline-spinner"></div><span>Running AI forecasts across all segments... This may take up to a minute on first load</span>';
       container.prepend(loader);
     }
   } else {
@@ -660,6 +668,8 @@ async function init() {
     }).catch(err => {
       console.error('Forecast error:', err);
       showForecastLoading(false);
+      const ctx = $('#forecastChart');
+      if (ctx && ctx.parentNode) ctx.parentNode.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);">⚠ Failed to load forecast. Server may be unreachable.</div>';
     });
 
     loadAlerts().then(() => {
@@ -667,11 +677,12 @@ async function init() {
     }).catch(err => {
       console.error('Alerts error:', err);
       showAlertsLoading(false);
+      $('#alertsBanner').innerHTML = '<div class="alert-banner danger">⚠ Failed to load risk alerts. Please try again later.</div>';
     });
 
   } catch (err) {
     console.error('Initialization failed:', err);
-    $('#loadingStatus').textContent = `Error: ${err.message}. Ensure the API server is running on port 5000.`;
+    $('#loadingStatus').textContent = `System Error: ${err.message}. Please restart the FinPulse API server and refresh the page.`;
   }
 }
 

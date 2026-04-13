@@ -121,7 +121,6 @@ def explain_all_alerts(alerts: list[dict]) -> dict:
     for a in alerts:
         print(f"  Generating AI explanation for: {a['segment']}...")
         results[a["segment"]] = explain_segment(a)
-        time.sleep(1)
     return results
 
 
