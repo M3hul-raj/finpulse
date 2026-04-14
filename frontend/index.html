@@ -81,10 +81,11 @@
         </div>
       </div>
 
-      <!-- System Status -->
-      <div class="system-status">
-        <span class="status-dot"></span>
-        <span>System Active · AI Engine Online</span>
+      <!-- Theme Toggle -->
+      <div style="display: flex; flex-direction: column; gap: 14px; margin-top: auto;">
+        <button id="themeToggle" style="background: none; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; font-size: 11px; font-weight: 500; font-family: inherit; transition: var(--transition-fast);">
+          <span id="themeToggleIcon" style="margin-right: 6px;">☀️</span> <span id="themeToggleText">Light Mode</span>
+        </button>
       </div>
     </aside>
 
@@ -116,17 +117,17 @@
             <div class="kpi-delta positive">↑ +12 this week</div>
           </div>
           <div class="kpi-card red">
-            <div class="kpi-label">Critical Segments (RED)</div>
+            <div class="kpi-label">Critical Segments</div>
             <div class="kpi-value" id="kpiCritical">0</div>
             <div class="kpi-delta negative" id="kpiCriticalDelta">⚠ action required</div>
           </div>
           <div class="kpi-card yellow">
-            <div class="kpi-label">At-Risk Segments (YELLOW)</div>
+            <div class="kpi-label">At-Risk Segments</div>
             <div class="kpi-value" id="kpiWarning">0</div>
             <div class="kpi-delta neutral">monitoring</div>
           </div>
           <div class="kpi-card green">
-            <div class="kpi-label">Healthy Segments (GREEN)</div>
+            <div class="kpi-label">Healthy Segments</div>
             <div class="kpi-value" id="kpiHealthy">0</div>
             <div class="kpi-delta positive">✓ stable</div>
           </div>
@@ -137,7 +138,7 @@
       <section class="section" id="heatmapSection">
         <div class="section-header">
           <div class="section-icon teal">📊</div>
-          <h2>Current Segment Risk Heatmap</h2>
+          <h2>Segment Risk Overview</h2>
         </div>
         <div class="heatmap-grid" id="heatmapGrid">
           <!-- Dynamically populated -->

@@ -15,6 +15,37 @@ let state = {
   baselineHeatmap: null,
 };
 
+// ── Theme System ───────────────────────────────────────────────
+function initTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  updateThemeUI(savedTheme);
+
+  const toggleBtn = document.getElementById('themeToggle');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      updateThemeUI(next);
+      
+      if (state.chart) {
+        loadForecast(); // Re-render to pick up CSS variable changes
+      }
+    });
+  }
+}
+
+function updateThemeUI(theme) {
+  const icon = document.getElementById('themeToggleIcon');
+  const text = document.getElementById('themeToggleText');
+  if (icon && text) {
+    icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    text.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+  }
+}
+
 // ── DOM References ─────────────────────────────────────────────
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
@@ -117,11 +148,14 @@ async function loadHeatmap() {
     const badgeIcon = seg.risk_label === 'RED' ? '🔴' :
                       seg.risk_label === 'YELLOW' ? '🟡' : '🟢';
 
+    const semanticLabel = seg.risk_label === 'RED' ? 'CRITICAL' :
+                          seg.risk_label === 'YELLOW' ? 'AT-RISK' : 'HEALTHY';
+
     card.innerHTML = `
       <div class="heatmap-segment-name">${seg.segment}</div>
       <div class="heatmap-fhs">${seg.fhs.toFixed(2)}</div>
       <div class="heatmap-sub">/ 100 FHS</div>
-      <div class="heatmap-badge">${badgeIcon} ${seg.risk_label}</div>
+      <div class="heatmap-badge">${badgeIcon} ${semanticLabel}</div>
     `;
 
     // Click to select segment for forecast
@@ -177,34 +211,59 @@ async function loadForecast() {
   const hist = data.historical;
   const fc = data.forecast;
 
-  // Build Chart.js datasets
-  const histData = hist.dates.map((d, i) => ({ x: new Date(d), y: hist.values[i] }));
-  const fcData = fc.dates.map((d, i) => ({ x: new Date(d), y: fc.yhat[i] }));
-  const fcUpper = fc.dates.map((d, i) => ({ x: new Date(d), y: fc.yhat_upper[i] }));
-  const fcLower = fc.dates.map((d, i) => ({ x: new Date(d), y: fc.yhat_lower[i] }));
+  // Sync datasets to unified Date X-axis for consistent hover alignment
+  const allDatesList = [...new Set([...hist.dates, ...fc.dates])].sort((a, b) => new Date(a) - new Date(b));
+
+  const mapData = (datesArr, valuesArr) => allDatesList.map(d => {
+    const idx = datesArr.indexOf(d);
+    return { x: new Date(d), y: idx !== -1 ? valuesArr[idx] : null };
+  });
+
+  const histData = mapData(hist.dates, hist.values);
+  const fcData = mapData(fc.dates, fc.yhat);
+  const fcUpper = mapData(fc.dates, fc.yhat_upper);
+  const fcLower = mapData(fc.dates, fc.yhat_lower);
 
   // SMA baseline from historical
   const smaWindow = 30;
-  const smaData = [];
-  for (let i = smaWindow - 1; i < hist.values.length; i++) {
-    const sum = hist.values.slice(i - smaWindow + 1, i + 1).reduce((a, b) => a + b, 0);
-    smaData.push({ x: new Date(hist.dates[i]), y: +(sum / smaWindow).toFixed(2) });
-  }
+  const smaData = allDatesList.map(d => {
+    const idx = hist.dates.indexOf(d);
+    if (idx >= smaWindow - 1) {
+      const sum = hist.values.slice(idx - smaWindow + 1, idx + 1).reduce((a, b) => a + b, 0);
+      return { x: new Date(d), y: +(sum / smaWindow).toFixed(2) };
+    }
+    return { x: new Date(d), y: null };
+  });
 
   // Population spread band (±8%)
-  const spreadUpper = hist.dates.map((d, i) => ({ x: new Date(d), y: +(hist.values[i] * 1.08).toFixed(2) }));
-  const spreadLower = hist.dates.map((d, i) => ({ x: new Date(d), y: +(hist.values[i] * 0.92).toFixed(2) }));
+  const spreadUpper = allDatesList.map(d => {
+    const idx = hist.dates.indexOf(d);
+    return { x: new Date(d), y: idx !== -1 ? +(hist.values[idx] * 1.08).toFixed(2) : null };
+  });
+  const spreadLower = allDatesList.map(d => {
+    const idx = hist.dates.indexOf(d);
+    return { x: new Date(d), y: idx !== -1 ? +(hist.values[idx] * 0.92).toFixed(2) : null };
+  });
 
   if (state.chart) {
     state.chart.destroy();
   }
 
   const ctx = $('#forecastChart').getContext('2d');
+  
+  const computed = getComputedStyle(document.documentElement);
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  
+  const textColor = computed.getPropertyValue('--text-muted').trim() || '#64748b';
+  const textPrimary = computed.getPropertyValue('--text-primary').trim() || '#0f172a';
+  const gridColor = isLight ? 'rgba(0, 0, 0, 0.12)' : (computed.getPropertyValue('--border-subtle').trim() || 'rgba(148, 163, 184, 0.06)');
+  const tooltipBg = computed.getPropertyValue('--bg-card').trim() || 'rgba(15, 23, 42, 0.95)';
+  const tooltipBorder = computed.getPropertyValue('--border-subtle').trim() || 'rgba(124, 58, 237, 0.3)';
 
   // Gradient for historical line
   const histGrad = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
-  histGrad.addColorStop(0, '#3b82f6');
-  histGrad.addColorStop(1, '#06b6d4');
+  histGrad.addColorStop(0, computed.getPropertyValue('--accent-purple').trim() || '#3b82f6');
+  histGrad.addColorStop(1, computed.getPropertyValue('--accent-teal').trim() || '#06b6d4');
 
   state.chart = new Chart(ctx, {
     type: 'line',
@@ -215,10 +274,10 @@ async function loadForecast() {
           label: 'Population Spread',
           data: spreadUpper,
           borderColor: 'transparent',
-          backgroundColor: 'rgba(59, 130, 246, 0.06)',
+          backgroundColor: isLight ? 'rgba(59, 130, 246, 0.12)' : 'rgba(59, 130, 246, 0.06)',
           fill: '+1',
           pointRadius: 0,
-          tension: 0.3,
+          tension: 0.2,
           order: 6,
         },
         {
@@ -228,7 +287,7 @@ async function loadForecast() {
           backgroundColor: 'transparent',
           fill: false,
           pointRadius: 0,
-          tension: 0.3,
+          tension: 0.2,
           order: 7,
         },
         // Historical FHS
@@ -236,26 +295,27 @@ async function loadForecast() {
           label: 'Avg Historical FHS',
           data: histData,
           borderColor: histGrad,
-          borderWidth: 2.5,
+          borderWidth: 2,
           backgroundColor: 'transparent',
           fill: false,
           pointRadius: 0,
-          pointHoverRadius: 5,
+          pointHoverRadius: 6,
+          pointHitRadius: 10,
           pointHoverBackgroundColor: '#3b82f6',
-          tension: 0.3,
+          tension: 0.2,
           order: 3,
         },
         // SMA Baseline
         {
           label: 'Baseline (30-day SMA)',
           data: smaData,
-          borderColor: 'rgba(148, 163, 184, 0.4)',
+          borderColor: isLight ? 'rgba(100, 116, 139, 0.7)' : 'rgba(148, 163, 184, 0.4)',
           borderWidth: 1.5,
           borderDash: [6, 4],
           backgroundColor: 'transparent',
           fill: false,
           pointRadius: 0,
-          tension: 0.3,
+          tension: 0.2,
           order: 4,
         },
         // Forecast Uncertainty Band
@@ -263,10 +323,10 @@ async function loadForecast() {
           label: 'Uncertainty Band',
           data: fcUpper,
           borderColor: 'transparent',
-          backgroundColor: 'rgba(245, 158, 11, 0.1)',
+          backgroundColor: isLight ? 'rgba(245, 158, 11, 0.3)' : 'rgba(245, 158, 11, 0.15)',
           fill: '+1',
           pointRadius: 0,
-          tension: 0.3,
+          tension: 0.2,
           order: 5,
         },
         {
@@ -276,22 +336,23 @@ async function loadForecast() {
           backgroundColor: 'transparent',
           fill: false,
           pointRadius: 0,
-          tension: 0.3,
+          tension: 0.2,
           order: 5,
         },
         // AI Forecast line
         {
           label: 'AI Forecast (Holt-Winters)',
           data: fcData,
-          borderColor: '#f59e0b',
-          borderWidth: 2.5,
-          borderDash: [6, 3],
+          borderColor: computed.getPropertyValue('--risk-yellow').trim() || '#f59e0b',
+          borderWidth: 3,
+          borderDash: [5, 5],
           backgroundColor: 'transparent',
           fill: false,
           pointRadius: 0,
-          pointHoverRadius: 5,
-          pointHoverBackgroundColor: '#f59e0b',
-          tension: 0.3,
+          pointHoverRadius: 6,
+          pointHitRadius: 10,
+          pointHoverBackgroundColor: computed.getPropertyValue('--risk-yellow').trim() || '#f59e0b',
+          tension: 0.2,
           order: 2,
         },
       ],
@@ -300,29 +361,36 @@ async function loadForecast() {
       responsive: true,
       maintainAspectRatio: false,
       interaction: {
-        mode: 'index',
-        intersect: false,
+        mode: 'nearest',
+        intersect: true,
       },
       plugins: {
         legend: {
           position: 'top',
           labels: {
-            color: '#94a3b8',
+            color: textPrimary,
             font: { family: 'Inter', size: 11, weight: '500' },
-            padding: 16,
+            padding: 18,
             usePointStyle: true,
             pointStyle: 'circle',
             filter: (item) => !item.text.startsWith('_'),
           },
         },
         tooltip: {
-          backgroundColor: 'rgba(15, 23, 42, 0.95)',
-          borderColor: 'rgba(124, 58, 237, 0.3)',
+          position: 'nearest',
+          yAlign: 'bottom',
+          xAlign: 'center',
+          backgroundColor: tooltipBg,
+          borderColor: tooltipBorder,
           borderWidth: 1,
+          boxBorderWidth: 1,
+          boxBorderColor: computed.getPropertyValue('--text-secondary').trim() || '#334155',
+          titleColor: textPrimary,
+          bodyColor: textPrimary,
           titleFont: { family: 'Inter', size: 12, weight: '600' },
           bodyFont: { family: 'JetBrains Mono', size: 12 },
-          padding: 14,
-          cornerRadius: 10,
+          padding: 12,
+          cornerRadius: 6,
           displayColors: true,
           filter: (item) => !item.dataset.label.startsWith('_'),
         },
@@ -335,18 +403,18 @@ async function loadForecast() {
             displayFormats: { month: 'MMM yyyy' },
           },
           grid: {
-            color: 'rgba(148, 163, 184, 0.06)',
+            color: gridColor,
             drawBorder: false,
           },
           ticks: {
-            color: '#64748b',
+            color: textPrimary,
             font: { family: 'Inter', size: 11 },
-            maxTicksLimit: 8,
+            maxTicksLimit: 12,
           },
           title: {
             display: true,
             text: 'Date',
-            color: '#64748b',
+            color: textColor,
             font: { family: 'Inter', size: 12, weight: '500' },
           },
         },
@@ -354,18 +422,18 @@ async function loadForecast() {
           min: 0,
           max: 100,
           grid: {
-            color: 'rgba(148, 163, 184, 0.06)',
+            color: gridColor,
             drawBorder: false,
           },
           ticks: {
-            color: '#64748b',
+            color: textPrimary,
             font: { family: 'JetBrains Mono', size: 11 },
             stepSize: 20,
           },
           title: {
             display: true,
             text: 'Financial Health Score (0–100)',
-            color: '#64748b',
+            color: textColor,
             font: { family: 'Inter', size: 12, weight: '500' },
           },
         },
@@ -383,7 +451,7 @@ async function loadForecast() {
           const { ctx, chartArea, scales } = chart;
           const yScale = scales.y;
 
-          // RED threshold at 60
+          // Critical threshold at 60
           const y60 = yScale.getPixelForValue(60);
           ctx.save();
           ctx.beginPath();
@@ -398,9 +466,9 @@ async function loadForecast() {
           ctx.fillStyle = 'rgba(239, 68, 68, 0.7)';
           ctx.font = '10px Inter';
           ctx.textAlign = 'right';
-          ctx.fillText('RED threshold (60)', chartArea.right - 4, y60 - 6);
+          ctx.fillText('Critical threshold (60)', chartArea.right - 4, y60 - 6);
 
-          // GREEN threshold at 75
+          // Healthy threshold at 75
           const y75 = yScale.getPixelForValue(75);
           ctx.beginPath();
           ctx.strokeStyle = 'rgba(34, 197, 94, 0.5)';
@@ -409,7 +477,7 @@ async function loadForecast() {
           ctx.stroke();
 
           ctx.fillStyle = 'rgba(34, 197, 94, 0.7)';
-          ctx.fillText('GREEN threshold (75)', chartArea.right - 4, y75 - 6);
+          ctx.fillText('Healthy threshold (75)', chartArea.right - 4, y75 - 6);
 
           ctx.restore();
         },
@@ -447,6 +515,7 @@ function generateForecastSummary(segment, day1, day30, delta, minLower, maxUpper
   const riskLabel = day30 < 60 ? 'RED' : day30 < 75 ? 'YELLOW' : 'GREEN';
   const riskClass = riskLabel.toLowerCase();
   const riskWord = riskLabel === 'RED' ? 'Critical' : riskLabel === 'YELLOW' ? 'At-Risk' : 'Healthy';
+  const semanticLabel = riskLabel === 'RED' ? 'CRITICAL' : riskLabel === 'YELLOW' ? 'AT-RISK' : 'HEALTHY';
 
   // Check for declining trend in forecast
   const midpoint = Math.floor(fc.yhat.length / 2);
@@ -462,7 +531,7 @@ function generateForecastSummary(segment, day1, day30, delta, minLower, maxUpper
     FHS is projected to ${direction} from <strong>${day1.toFixed(1)}</strong> to <strong>${day30.toFixed(1)}</strong>
     (${delta >= 0 ? '+' : ''}${pctChange}%) over the next 30 days.
     Range: <strong>${minLower.toFixed(1)}</strong> (worst-case) to <strong>${maxUpper.toFixed(1)}</strong> (best-case).
-    The segment remains in <span class="summary-risk ${riskClass}">${riskWord} (${riskLabel})</span> zone.${trendNote}
+    The segment remains in <span class="summary-risk ${riskClass}">${riskWord} (${semanticLabel})</span> zone.${trendNote}
   `;
 }
 
@@ -518,7 +587,10 @@ async function loadAlerts() {
           <div class="alert-ai-card">
             <div class="alert-ai-icon">🤖</div>
             <div class="alert-ai-content">
-              <strong>GenAI Intervention Plan:</strong> ${alert.explanation}
+              <strong>GenAI Intervention Plan:</strong>
+              <ul style="margin-top: 8px; padding-left: 20px;">
+                ${alert.explanation.split(/(?<=\.)\s/).filter(s => s.trim().length > 3).map(s => `<li>${s.trim()}</li>`).join('')}
+              </ul>
             </div>
           </div>
         </div>
@@ -703,6 +775,7 @@ async function init() {
 
 // ── Event Listeners ────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
   setupSlider();
 
   // Segment selector change
