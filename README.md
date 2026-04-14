@@ -1,5 +1,8 @@
 # 🏦 FinPulse — NatWest Segment Risk Intelligence
 
+> **Live Demo:** [finpulse-natwest.onrender.com](https://finpulse-natwest.onrender.com)  
+> *Free tier — first load after inactivity may take ~50 seconds to wake up.*
+
 ## i. Problem & Solution
 
 **The Problem:** Retail banking interventions typically occur *after* a default. This reactive approach leads to elevated bad-debt provisioning, permanent loss of customer trust, and costly recovery operations.
@@ -94,7 +97,7 @@ python src/customer_generator.py
 # Boot the API server (loads on http://localhost:5000)
 python src/api_server.py
 ```
-> *First startup requires ~45 seconds for initial background forecast caching; subsequent API requests operate with <50ms latency.*
+> *The dashboard loads instantly. Risk heatmap and portfolio data populate within ~30 seconds on first load; forecasts and AI alerts follow in the background.*
 
 **5. Run Tests (optional)**
 ```bash
@@ -121,6 +124,22 @@ By deploying FinPulse, NatWest gains the capability to detect segmented portfoli
 - Direct integration with NatWest transaction data lake.
 - Per-customer (granular) FHS tracking and forecasting execution.
 - Automated pipeline SMS/Email alerts routing directly to relationship managers.
+
+---
+
+## vii. Deployment
+
+FinPulse is deployed on [Render](https://render.com) as a single Python web service.
+
+| Setting | Value |
+|---------|-------|
+| **Build Command** | `pip install -r requirements.txt` |
+| **Start Command** | `bash start.sh` |
+| **Health Check Path** | `/api/segments` |
+
+The startup script (`start.sh`) generates synthetic data on first deploy, then launches gunicorn. All heavy computation (FHS heatmap, forecasts) runs in background threads — endpoints return HTTP 202 while processing and the frontend polls automatically.
+
+**Environment Variables:** Set `GEMINI_API_KEY` and/or `GROQ_API_KEY` in Render's Environment settings.
 
 ---
 

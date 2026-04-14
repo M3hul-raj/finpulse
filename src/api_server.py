@@ -5,8 +5,9 @@ Serves JSON data to the custom frontend dashboard.
 
 Performance features:
   - Thread-safe caching with locks (prevents duplicate computation)
-  - Background pre-computation of forecasts on server startup
-  - Lazy-loaded heatmap and portfolio data
+  - Non-blocking endpoints: return HTTP 202 while data is computing
+  - Deferred background pre-computation of heatmap + forecasts
+  - Frontend polls automatically and resolves when data is ready
 """
 
 import sys
