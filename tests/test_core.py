@@ -1,5 +1,5 @@
 """
-test_forecaster.py
+test_core.py
 Unit tests for FinPulse core modules.
 
 All tests are self-contained — no pre-generated CSV files required.

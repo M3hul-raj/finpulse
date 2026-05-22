@@ -20,7 +20,7 @@ LOOKBACK_DAYS = 45       # Days of historical FHS to build time series
 SAMPLE_CUSTOMERS = 30    # Customers sampled per segment (CLT: 30 is sufficient)
 ROLLING_WINDOW = 180     # Rolling window size for FHS computation (days of balance data)
 
-np.random.seed(42)  # Reproducible sampling
+
 
 
 def build_daily_fhs_series(df: pd.DataFrame, segment: str) -> pd.Series:

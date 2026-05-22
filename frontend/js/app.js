@@ -786,6 +786,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize
   init();
+
+  // Setup scroll animations
+  $$('.section').forEach(section => {
+    scrollObserver.observe(section);
+  });
 });
 
 // ── Intersection Observer for scroll animations ────────────────
@@ -802,8 +807,3 @@ const scrollObserver = new IntersectionObserver((entries) => {
   });
 }, observerOptions);
 
-document.addEventListener('DOMContentLoaded', () => {
-  $$('.section').forEach(section => {
-    scrollObserver.observe(section);
-  });
-});

@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import zlib
 
-np.random.seed(42)  # Reproducible sampling
+
 
 
 def compute_balance_trend(balances: pd.Series) -> float:

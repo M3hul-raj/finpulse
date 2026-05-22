@@ -40,7 +40,6 @@ def detect_anomalies(forecast_results: dict) -> list[dict]:
 
 
 if __name__ == "__main__":
-    import pandas as pd
     import sys
     sys.path.insert(0, "src")
     from forecaster import forecast_all_segments
