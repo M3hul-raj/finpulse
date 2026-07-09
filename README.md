@@ -62,7 +62,7 @@ Score: 0–100 | < 60 = RED | 60–75 = YELLOW | > 75 = GREEN
 
 ## iv. Setup & Run Instructions
 
-**Prerequisites:** Python 3.10+, Git
+**Prerequisites:** Python 3.14+, Git
 
 **1. Clone the repository**
 ```bash
