@@ -11,11 +11,12 @@
 | File | Size | Purpose |
 |---|---|---|
 | `README.md` | 8.3 KB | Project documentation. Contains problem statement, architecture diagram, features, setup instructions, limitations, impact, and deployment config. |
-| `requirements.txt` | 380 B | Python dependencies: Flask, NumPy, Pandas, statsmodels, google-genai, groq, pytest, gunicorn. Floor-versioned (`>=`). |
+| `requirements.txt` | 380 B | Python dependencies: Flask, NumPy, Pandas, statsmodels, google-genai, groq, pytest, gunicorn. Pinned (`==`). |
 | `start.sh` | 464 B | Render deployment entrypoint. Creates `data/` dir, generates CSV if missing, launches gunicorn with 1 worker + 4 threads. |
 | `.gitignore` | 255 B | Ignores `.env`, `venv/`, `__pycache__/`, `*.csv`, IDE folders, pytest cache, etc. |
 | `.env.example` | 509 B | Template for API keys. Documents both providers (Gemini + Groq) with signup links. Notes offline fallback behavior. |
 | `LICENSE` | 11.5 KB | Apache License 2.0 — full standard text. |
+| `.github/workflows/tests.yml` | 545 B | GitHub Actions CI workflow. Runs `pytest tests/ -v` on push/PR to `main` using Python 3.14. |
 
 ---
 
