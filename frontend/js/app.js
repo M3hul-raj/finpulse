@@ -38,16 +38,24 @@ async function fetchJSON(endpoint) {
 
 async function fetchJSONWithRetry(endpoint, maxRetries = 60, delay = 3000) {
   for (let i = 0; i <= maxRetries; i++) {
-    const res = await fetch(`${API_BASE}${endpoint}`);
-    if (res.status === 202) {
+    try {
+      const res = await fetch(`${API_BASE}${endpoint}`);
+      if (res.status === 202 || res.status === 502 || res.status === 503 || res.status === 504) {
+        if (i < maxRetries) {
+          await new Promise(r => setTimeout(r, delay));
+          continue;
+        }
+        throw new Error('Server computation timed out');
+      }
+      if (!res.ok) throw new Error(`API Error: ${res.status}`);
+      return await res.json();
+    } catch (err) {
       if (i < maxRetries) {
         await new Promise(r => setTimeout(r, delay));
         continue;
       }
-      throw new Error('Server computation timed out');
+      throw err;
     }
-    if (!res.ok) throw new Error(`API Error: ${res.status}`);
-    return await res.json();
   }
 }
 
