@@ -8,10 +8,12 @@ Performance features:
   - Non-blocking endpoints: return HTTP 202 while data is computing
   - Deferred background pre-computation of heatmap + forecasts
   - Frontend polls automatically and resolves when data is ready
+  - /api/model-metrics serves precomputed ML pipeline results (static JSON)
 """
 
 import sys
 import os
+import json
 import threading
 from pathlib import Path
 
@@ -31,6 +33,7 @@ CORS(app)
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+MODEL_DIR = Path(__file__).resolve().parent.parent / "model_results"
 
 # Known segments — hardcoded so /api/segments never touches the CSV.
 # Must match customer_generator.SEGMENTS.
@@ -38,6 +41,43 @@ KNOWN_SEGMENTS = [
     "Daily Wage", "Gig/Freelance", "Govt/PSU", "IT Salaried",
     "Retirees", "Small Business", "Students", "Young Professionals",
 ]
+
+# ── Tier-Aware Recommended Actions ───────────────────────────────────────────
+# Keyed by (segment, risk_tier) so action text updates when stress slider
+# changes a segment's risk level.
+SEGMENT_ACTIONS = {
+    # RED tier → escalate / intervene
+    ("Daily Wage", "RED"): "Escalate to relationship manager; activate emergency liquidity support and defer scheduled debits.",
+    ("Gig/Freelance", "RED"): "Escalate for urgent review; offer emergency micro-loan and suspend non-essential fees.",
+    ("Students", "RED"): "Flag for welfare check; activate overdraft protection and connect with student financial aid.",
+    ("Small Business", "RED"): "Escalate to business banking team; pre-approve emergency working capital line.",
+    ("Govt/PSU", "RED"): "Escalate to senior advisor; review pension adequacy and defer premium payments.",
+    ("Retirees", "RED"): "Urgent escalation; schedule face-to-face financial wellness review and restructure fixed deposits.",
+    ("IT Salaried", "RED"): "Flag for layoff-risk monitoring; pre-approve emergency credit and offer EMI holiday.",
+    ("Young Professionals", "RED"): "Escalate; activate spending freeze alerts and offer short-term credit restructuring.",
+    # AMBER tier → monitor / offer support
+    ("Daily Wage", "AMBER"): "Enrol in micro-savings auto-sweep; schedule proactive relationship manager outreach.",
+    ("Gig/Freelance", "AMBER"): "Offer income-smoothing product; activate spending pattern alerts.",
+    ("Students", "AMBER"): "Deploy in-app budgeting nudges; pre-approve small overdraft buffer.",
+    ("Small Business", "AMBER"): "Schedule quarterly cash flow review; offer seasonal credit facility.",
+    ("Govt/PSU", "AMBER"): "Monitor for unusual spending; offer financial planning consultation.",
+    ("Retirees", "AMBER"): "Schedule pension adequacy check; offer fixed deposit restructuring options.",
+    ("IT Salaried", "AMBER"): "Monitor discretionary spending; offer automated savings recommendations.",
+    ("Young Professionals", "AMBER"): "Activate smart budgeting tools; offer salary-linked savings product.",
+    # GREEN tier → retain / upsell
+    ("Daily Wage", "GREEN"): "Retain with loyalty incentives; introduce savings goal products.",
+    ("Gig/Freelance", "GREEN"): "Offer premium freelancer banking package; introduce investment options.",
+    ("Students", "GREEN"): "Graduate to Young Professional products; offer first credit card.",
+    ("Small Business", "GREEN"): "Upsell business growth credit; offer trade finance products.",
+    ("Govt/PSU", "GREEN"): "Cross-sell investment products; offer premium banking upgrade.",
+    ("Retirees", "GREEN"): "Offer wealth management consultation; introduce estate planning services.",
+    ("IT Salaried", "GREEN"): "Upsell premium banking; offer mortgage and investment products.",
+    ("Young Professionals", "GREEN"): "Offer first home loan pre-approval; introduce systematic investment plans.",
+}
+
+def _get_action(segment: str, risk_label: str) -> str:
+    """Get tier-aware recommended action for a segment."""
+    return SEGMENT_ACTIONS.get((segment, risk_label), "Monitor and review at next scheduled assessment.")
 
 # ── Thread-safe Cache ────────────────────────────────────────────────────────
 _cache = {}
@@ -135,7 +175,7 @@ def api_portfolio():
 
     heatmap_df = _cache[key]
     critical = int(len(heatmap_df[heatmap_df["risk_label"] == "RED"]))
-    warning = int(len(heatmap_df[heatmap_df["risk_label"] == "YELLOW"]))
+    warning = int(len(heatmap_df[heatmap_df["risk_label"] == "AMBER"]))
     healthy = int(len(heatmap_df[heatmap_df["risk_label"] == "GREEN"]))
     return jsonify({
         "total_customers": 1000,
@@ -162,6 +202,12 @@ def api_heatmap():
             "segment": row["segment"],
             "fhs": float(row["fhs"]),
             "risk_label": row["risk_label"],
+            "subscores": {
+                "balance_trend": float(row.get("balance_trend", 50.0)),
+                "income_regularity": float(row.get("income_regularity", 50.0)),
+                "spending_volatility": float(row.get("spending_volatility", 50.0)),
+                "debt_ratio": float(row.get("debt_ratio", 50.0)),
+            }
         })
     return jsonify(result)
 
@@ -217,16 +263,37 @@ def api_alerts():
 
     result = []
     for alert in alerts:
+        seg = str(alert["segment"])
+        sev = str(alert["severity"])
+        action_tier = "RED" if sev == "CRITICAL" else "AMBER"
         result.append({
-            "segment": str(alert["segment"]),
-            "severity": str(alert["severity"]),
+            "segment": seg,
+            "severity": sev,
             "fhs_day1": float(alert["fhs_day1"]),
             "fhs_day30": float(alert["fhs_day30"]),
             "min_lower": float(alert["min_lower"]),
             "declining": bool(alert["declining"]),
-            "explanation": str(explanations.get(alert["segment"], "")),
+            "explanation": str(explanations.get(seg, "")),
+            "recommended_action": _get_action(seg, action_tier),
         })
     return jsonify(result)
+
+
+# ── Model Metrics Endpoint ───────────────────────────────────────────────────
+@app.route("/api/model-metrics")
+def api_model_metrics():
+    """Serve precomputed ML pipeline results from model_results/ directory."""
+    metrics = {}
+    for filename in ["classification_report.json", "clustering.json",
+                     "forecast_metrics.json", "statistical_tests.json"]:
+        filepath = MODEL_DIR / filename
+        if filepath.exists():
+            with open(filepath, "r") as f:
+                metrics[filename.replace(".json", "")] = json.load(f)
+        else:
+            metrics[filename.replace(".json", "")] = None
+
+    return jsonify(metrics)
 
 
 # ── Startup ──────────────────────────────────────────────────────────────────

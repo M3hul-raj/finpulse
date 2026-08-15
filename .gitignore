@@ -27,3 +27,6 @@ Thumbs.db
 htmlcov/
 .coverage
 PROJECT_DUMP_FOR_TEAMMATE.md
+
+# Reports / Audit
+lighthouse_report.json

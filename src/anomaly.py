@@ -18,21 +18,19 @@ def detect_anomalies(forecast_results: dict) -> list[dict]:
         fc = data["forecast"]
         hist = data["historical"]
 
-        next_14 = fc.iloc[:14]
-        min_lower = next_14["yhat_lower"].min()
-        fhs_start = fc["yhat"].iloc[0]
-        fhs_end   = fc["yhat"].iloc[-1]
-        declining = fhs_end < fhs_start - 1.0
+        min_lower = float(fc["yhat_lower"].min())
+        fhs_start = float(fc["yhat"].iloc[0])
+        fhs_end   = float(fc["yhat"].iloc[-1])
+        declining = bool(fhs_end < fhs_start - 1.0)
 
-        if min_lower < 60 or declining:
+        if min_lower < 35 or declining:
             alerts.append({
                 "segment":    seg,
                 "min_lower":  round(min_lower, 1),
                 "fhs_day1":   round(fhs_start, 1),
                 "fhs_day30":  round(fhs_end, 1),
                 "declining":  declining,
-                # FIX: Align CRITICAL severity with the < 60 RED threshold
-                "severity":   "CRITICAL" if min_lower < 60 else "WARNING",
+                "severity":   "CRITICAL" if min_lower < 35 else "WARNING",
             })
 
     alerts.sort(key=lambda x: x["min_lower"])

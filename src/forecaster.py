@@ -57,30 +57,66 @@ def build_daily_fhs_series(df: pd.DataFrame, segment: str) -> pd.Series:
 
 
 def forecast_segment(series: pd.Series) -> pd.DataFrame:
-    """Forecast using SimpleExpSmoothing + linear extrapolation for trend."""
+    """
+    Forecast using Holt (ExponentialSmoothing with trend).
+    Fallback chain: Holt → SES → linear extrapolation.
+    Confidence intervals scale with horizon: SE × √t.
+    """
     series = series.dropna()
 
+    forecast_values = None
+    model_used = None
+
+    # Attempt 1: Holt (trend component)
     try:
-        model = SimpleExpSmoothing(series, initialization_method="estimated").fit(
-            optimized=True, remove_bias=True
-        )
-        base_forecast = model.forecast(FORECAST_DAYS)
+        from statsmodels.tsa.holtwinters import ExponentialSmoothing
+        model = ExponentialSmoothing(
+            series, trend="add", seasonal=None,
+            initialization_method="estimated"
+        ).fit(optimized=True)
+        forecast_values = model.forecast(FORECAST_DAYS).values
+        model_used = "holt"
     except Exception:
-        # Fallback: use last value repeated
-        base_forecast = pd.Series(
-            [series.iloc[-1]] * FORECAST_DAYS
+        pass
+
+    # Attempt 2: Simple Exponential Smoothing
+    if forecast_values is None:
+        try:
+            model = SimpleExpSmoothing(
+                series, initialization_method="estimated"
+            ).fit(optimized=True, remove_bias=True)
+            base_forecast = model.forecast(FORECAST_DAYS).values
+            # Add linear trend correction since SES is flat
+            recent = series.iloc[-30:]
+            x = np.arange(len(recent))
+            slope = np.polyfit(x, recent.values, 1)[0]
+            trend_correction = np.arange(1, FORECAST_DAYS + 1) * slope
+            forecast_values = base_forecast + trend_correction
+            model_used = "ses"
+        except Exception:
+            pass
+
+    # Attempt 3: Linear extrapolation (last resort)
+    if forecast_values is None:
+        recent = series.iloc[-30:]
+        x = np.arange(len(recent))
+        slope, intercept = np.polyfit(x, recent.values, 1)
+        forecast_values = intercept + slope * np.arange(
+            len(recent), len(recent) + FORECAST_DAYS
         )
+        model_used = "linear"
 
-    # Add linear trend from last 30 days
-    recent = series.iloc[-30:]
-    x = np.arange(len(recent))
-    slope = np.polyfit(x, recent.values, 1)[0]
-    trend_correction = np.arange(1, FORECAST_DAYS + 1) * slope
+    yhat = np.clip(forecast_values, 0, 100)
 
-    yhat = np.clip(base_forecast.values + trend_correction, 0, 100)
-    residual_std = float((series - series.mean()).std())
-    if np.isnan(residual_std) or residual_std == 0:
+    # Compute residual standard error from in-sample fit
+    residual_std = float(np.std(series.diff().dropna()))
+    if np.isnan(residual_std) or residual_std < 0.5:
         residual_std = 2.0
+
+    # Confidence intervals GROW with horizon: SE × √t
+    # This is the standard random-walk approximation for forecast uncertainty
+    horizon = np.arange(1, FORECAST_DAYS + 1)
+    margin = 1.96 * residual_std * np.sqrt(horizon)
 
     last_date = series.index[-1]
     future_dates = pd.date_range(
@@ -90,8 +126,8 @@ def forecast_segment(series: pd.Series) -> pd.DataFrame:
     return pd.DataFrame({
         "ds": future_dates,
         "yhat":       np.round(yhat, 2),
-        "yhat_lower": np.round(np.clip(yhat - 1.96 * residual_std, 0, 100), 2),
-        "yhat_upper": np.round(np.clip(yhat + 1.96 * residual_std, 0, 100), 2),
+        "yhat_lower": np.round(np.clip(yhat - margin, 0, 100), 2),
+        "yhat_upper": np.round(np.clip(yhat + margin, 0, 100), 2),
     })
 
 

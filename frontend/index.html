@@ -6,7 +6,7 @@
   <meta name="description" content="FinPulse — AI-powered Financial Health Score forecasting for NatWest retail banking. Monitor 8 customer segments with 30-day risk forecasts and GenAI intervention plans.">
   <title>FinPulse | NatWest Segment Risk Intelligence</title>
 
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='80'>🏦</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='80'>FP</text></svg>">
   <link rel="stylesheet" href="css/styles.css">
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -23,91 +23,65 @@
 
   <div class="app-layout" id="appLayout" style="opacity: 0;">
 
-    <!-- ═══ SIDEBAR ═══ -->
-    <aside class="sidebar">
-      <div class="sidebar-brand">
-        <div class="sidebar-brand-icon">🏦</div>
-        <div class="sidebar-brand-text">
+    <!-- ═══ TOP NAVIGATION HEADER ═══ -->
+    <header class="top-nav">
+      <div class="nav-brand">
+        <div class="nav-brand-icon">
+          <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="2" width="28" height="28" rx="6" fill="#0E131F" stroke="#818CF8" stroke-width="1.5" stroke-opacity="0.5"/>
+            <path d="M6 16H10L13 10L17 22L20 14L22 16H26" stroke="#818CF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="17" cy="22" r="2" fill="#34D399"/>
+          </svg>
+        </div>
+        <div class="nav-brand-text">
           <h2>FinPulse</h2>
-          <span>NatWest Risk Intelligence</span>
+          <span>NatWest Segment Risk Intelligence</span>
         </div>
       </div>
 
-      <!-- Scenario Testing -->
-      <div class="sidebar-section">
-        <div class="sidebar-section-title">Scenario Testing</div>
-        <div class="scenario-card">
-          <label for="shockSlider">Simulate expense shock</label>
-          <div class="scenario-slider-wrap">
-            <input type="range" id="shockSlider" class="scenario-slider" min="0" max="50" value="0" step="5" aria-label="Simulate expense shock percentage">
-          </div>
+      <div class="nav-meta">
+        <span class="meta-tag">1,000 Customers</span>
+        <span class="meta-tag">8 Segments</span>
+        <span class="meta-tag">30-Day Forecast Horizon</span>
+        <div class="live-pill">
+          <span class="live-dot"></span>
+          <span>Risk Engine Active</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ═══ SCENARIO STRESS TOOLBAR ═══ -->
+    <div class="scenario-toolbar-wrap">
+      <div class="scenario-toolbar">
+        <div class="scenario-toolbar-label">
+          <strong>Scenario Stress Testing</strong>
+          <span>Simulate macroeconomic expense shock</span>
+        </div>
+        <div class="scenario-presets">
+          <button class="preset-btn active" data-shock="0">0% Baseline</button>
+          <button class="preset-btn" data-shock="10">+10% Mild</button>
+          <button class="preset-btn" data-shock="25">+25% Moderate</button>
+          <button class="preset-btn" data-shock="35">+35% Severe</button>
+        </div>
+        <div class="scenario-slider-box">
+          <input type="range" id="shockSlider" class="scenario-slider" min="0" max="50" value="0" step="5" aria-label="Simulate expense shock percentage">
           <div class="scenario-value">
             <span class="scenario-badge" id="shockValue">0%</span>
-            <span class="scenario-label">of balance</span>
-          </div>
-          <div class="shock-warning" id="shockWarning">
-            ⚠️ <span id="shockWarningText"></span>
+            <span class="scenario-label">shock</span>
           </div>
         </div>
       </div>
-
-      <!-- FHS Formula -->
-      <div class="sidebar-section">
-        <div class="sidebar-section-title">FHS Calculation</div>
-        <div class="fhs-formula">
-          <div><span class="fhs-weight">40%</span> <strong>Balance Trend</strong></div>
-          <div><span class="fhs-weight">30%</span> <strong>Income Regularity</strong></div>
-          <div><span class="fhs-weight">20%</span> <strong>Spending Volatility</strong></div>
-          <div><span class="fhs-weight">10%</span> <strong>Debt Ratio</strong></div>
-        </div>
+      <div class="shock-warning" id="shockWarning">
+        <span id="shockWarningText"></span>
       </div>
-
-      <!-- Risk Legend -->
-      <div class="sidebar-section">
-        <div class="sidebar-section-title">Risk Levels</div>
-        <div class="fhs-legend">
-          <div class="fhs-legend-item">
-            <span class="fhs-legend-dot red"></span>
-            <span>Critical — FHS &lt; 60</span>
-          </div>
-          <div class="fhs-legend-item">
-            <span class="fhs-legend-dot yellow"></span>
-            <span>At-Risk — FHS 60–75</span>
-          </div>
-          <div class="fhs-legend-item">
-            <span class="fhs-legend-dot green"></span>
-            <span>Healthy — FHS &gt; 75</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Theme Toggle -->
-      <div style="display: flex; flex-direction: column; gap: 14px; margin-top: auto;">
-        <button id="themeToggle" style="background: none; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; font-size: 11px; font-weight: 500; font-family: inherit; transition: var(--transition-fast);">
-          <span id="themeToggleIcon" style="margin-right: 6px;">☀️</span> <span id="themeToggleText">Light Mode</span>
-        </button>
-      </div>
-    </aside>
+    </div>
 
     <!-- ═══ MAIN CONTENT ═══ -->
     <main class="main-content">
 
-      <!-- Page Header -->
-      <header class="page-header">
-        <h1><span class="emoji" role="img" aria-label="bank">🏦</span> FinPulse — NatWest Segment Risk Intelligence</h1>
-        <div class="subtitle">
-          AI-powered Financial Health Score forecasting
-          <span class="header-sep">·</span>
-          <span class="header-tag">📊 1,000 Customers</span>
-          <span class="header-tag">🧩 8 Segments</span>
-          <span class="header-tag">📅 30-Day Horizon</span>
-        </div>
-      </header>
-
       <!-- ═══ PORTFOLIO OVERVIEW ═══ -->
       <section class="section" id="portfolioSection">
         <div class="section-header">
-          <div class="section-icon purple">🌐</div>
           <h2>Portfolio Overview</h2>
         </div>
         <div class="kpi-grid" id="kpiGrid">
@@ -119,34 +93,52 @@
           <div class="kpi-card red">
             <div class="kpi-label">Critical Segments</div>
             <div class="kpi-value" id="kpiCritical">0</div>
-            <div class="kpi-delta negative" id="kpiCriticalDelta">⚠ action required</div>
+            <div class="kpi-delta negative" id="kpiCriticalDelta">Action required</div>
           </div>
-          <div class="kpi-card yellow">
+          <div class="kpi-card amber">
             <div class="kpi-label">At-Risk Segments</div>
             <div class="kpi-value" id="kpiWarning">0</div>
-            <div class="kpi-delta neutral">monitoring</div>
+            <div class="kpi-delta neutral">Monitoring</div>
           </div>
           <div class="kpi-card green">
             <div class="kpi-label">Healthy Segments</div>
             <div class="kpi-value" id="kpiHealthy">0</div>
-            <div class="kpi-delta positive">✓ stable</div>
+            <div class="kpi-delta positive">Stable</div>
           </div>
         </div>
       </section>
 
       <!-- ═══ RISK HEATMAP ═══ -->
       <section class="section" id="heatmapSection">
-        <div class="section-header">
-          <div class="section-icon teal">📊</div>
-          <h2>Segment Risk Overview</h2>
+        <div class="section-header-flex">
+          <div>
+            <h2>Segment Risk Overview</h2>
+            <div class="section-subtext">Click any segment row to inspect its 30-day forecast trajectory below.</div>
+          </div>
+          <!-- Always-Visible Reference Legends -->
+          <div class="matrix-legends-bar">
+            <div class="fhs-formula-inline">
+              <span class="formula-label">FHS Formula:</span>
+              <span><strong>40%</strong> Balance Trend</span> ·
+              <span><strong>30%</strong> Income Regularity</span> ·
+              <span><strong>20%</strong> Spending Volatility</span> ·
+              <span><strong>10%</strong> Debt Ratio</span>
+            </div>
+            <div class="fhs-legend-inline">
+              <span class="fhs-legend-item"><span class="fhs-legend-dot red"></span> Critical (&lt;35)</span>
+              <span class="fhs-legend-item"><span class="fhs-legend-dot amber"></span> At-Risk (35–59)</span>
+              <span class="fhs-legend-item"><span class="fhs-legend-dot green"></span> Healthy (&ge;60)</span>
+            </div>
+          </div>
         </div>
+
         <div class="heatmap-grid" id="heatmapGrid">
           <!-- Dynamically populated -->
         </div>
+
         <!-- Scenario Comparison (shown when shock > 0) -->
         <div class="scenario-comparison" id="scenarioComparison" style="display: none;">
           <div class="scenario-comparison-header">
-            <span class="scenario-comparison-icon">⚖️</span>
             <strong>Scenario Impact Analysis</strong>
             <span class="scenario-comparison-tag" id="scenarioComparisonTag">0% shock vs baseline</span>
           </div>
@@ -158,15 +150,16 @@
 
       <!-- ═══ FORECAST ═══ -->
       <section class="section" id="forecastSection">
-        <div class="section-header">
-          <div class="section-icon amber" role="img" aria-label="chart">📈</div>
-          <h2>30-Day Forecast</h2>
-        </div>
-
-        <div class="forecast-controls">
-          <select class="segment-select" id="segmentSelect" aria-label="Select segment for forecast">
-            <!-- Dynamically populated -->
-          </select>
+        <div class="section-header-flex">
+          <div>
+            <h2>30-Day Forecast Studio</h2>
+            <div class="section-subtext">Holt-Winters exponential smoothing with horizon-scaled uncertainty bands (SE × √t).</div>
+          </div>
+          <div class="forecast-controls">
+            <select class="segment-select" id="segmentSelect" aria-label="Select segment for forecast">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
         </div>
 
         <div class="chart-container">
@@ -187,42 +180,63 @@
             <div class="forecast-kpi-delta" id="fcDelta"></div>
           </div>
           <div class="forecast-kpi">
-            <div class="forecast-kpi-label">Lower Bound (worst)</div>
+            <div class="forecast-kpi-label">Lower Bound (Worst Case)</div>
             <div class="forecast-kpi-value" id="fcLower">—</div>
           </div>
           <div class="forecast-kpi">
-            <div class="forecast-kpi-label">Upper Bound (best)</div>
+            <div class="forecast-kpi-label">Upper Bound (Best Case)</div>
             <div class="forecast-kpi-value" id="fcUpper">—</div>
           </div>
         </div>
 
         <!-- Forecast Text Summary -->
         <div class="forecast-summary" id="forecastSummary" style="display: none;">
-          <div class="forecast-summary-icon">📋</div>
           <div class="forecast-summary-text" id="forecastSummaryText"></div>
         </div>
       </section>
 
       <!-- ═══ ALERTS ═══ -->
       <section class="section" id="alertsSection">
-        <div class="section-header">
-          <div class="section-icon red">🚨</div>
-          <h2>Early Warning Alerts</h2>
+        <div class="section-header-flex">
+          <div>
+            <h2>Early Warning Alerts & Interventions</h2>
+            <div class="section-subtext">Predictive Forward Risk · Flags segments where forecasted 95% worst-case bound breaches critical threshold (&lt;35).</div>
+          </div>
         </div>
         <div id="alertsBanner"></div>
-        <div class="alerts-list" id="alertsList">
-          <!-- Dynamically populated -->
+        <div class="alerts-list-wrap">
+          <div class="alerts-list" id="alertsList">
+            <!-- Dynamically populated -->
+          </div>
         </div>
+      </section>
+
+      <!-- ═══ MODEL PERFORMANCE ═══ -->
+      <section class="section" id="modelSection">
+        <div class="section-header-flex">
+          <div>
+            <h2>Model Performance & Validation</h2>
+            <div class="section-subtext">Benchmarking classification, forecasting, clustering, and ANOVA statistical significance.</div>
+          </div>
+        </div>
+        <div class="model-tabs">
+          <button class="model-tab active" data-tab="classification">Classification</button>
+          <button class="model-tab" data-tab="forecasting">Forecasting</button>
+          <button class="model-tab" data-tab="clustering">Clustering</button>
+          <button class="model-tab" data-tab="statistics">Statistics</button>
+        </div>
+        <div class="model-content" id="modelContent"></div>
       </section>
 
       <!-- ═══ FOOTER ═══ -->
       <footer class="footer">
-        <div>FinPulse · NatWest Code for Purpose Hackathon 2026 · Team BIT Mesra</div>
+        <div>FinPulse — NatWest Segment Risk Intelligence</div>
         <div class="footer-tech">
           <span class="footer-tag">Python</span>
           <span class="footer-tag">Flask</span>
           <span class="footer-tag">Chart.js</span>
           <span class="footer-tag">statsmodels</span>
+          <span class="footer-tag">scikit-learn</span>
           <span class="footer-tag">Gemini AI + Groq / Llama 3.3</span>
         </div>
       </footer>
