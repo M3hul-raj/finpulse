@@ -63,12 +63,14 @@
 
 #### `llm_explainer.py` — GenAI Intervention Engine
 - **What it does**: Generates actionable 1–2 sentence intervention plans for flagged segments.
-- **Provider chain** (automatic fallback):
-  1. **Google Gemini** (`gemini-2.0-flash-lite`) — primary.
-  2. **Groq** (`llama-3.3-70b-versatile`) — secondary.
-  3. **Curated fallback** — hardcoded segment-specific responses (8 segments covered).
+- **Quality-first cross-provider waterfall** (automatic failover):
+  1. **Google Gemini** (`gemini-3.5-flash-lite`) — Tier 1 flagship frontier reasoning.
+  2. **Groq LPU** (`openai/gpt-oss-120b`) — Tier 2 120B parameter powerhouse on sub-second LPU.
+  3. **Google Gemini** (`gemini-flash-lite-latest`) — Auto-updating Google alias for deprecation immunity.
+  4. **Groq LPU** (`llama-3.1-8b-instant`) — Permanent Groq LTS high-throughput baseline.
+  5. **Curated fallback** — hardcoded segment-specific responses (8 segments covered).
 - **Prompt engineering**: Structured risk analyst prompt with segment data, severity, and FHS trajectory.
-- **Resilience**: If all API providers fail, the system always produces output via curated fallbacks.
+- **Resilience**: 4 levels of live cloud failover + offline banking matrix ensure zero single-point-of-failure risk.
 
 #### `api_server.py` — Flask REST API
 - **What it does**: Wraps all modules into a REST API and serves the frontend.
@@ -191,7 +193,7 @@ index.html loads → app.js init()
 - Engineered an **early warning anomaly detection system** that flags segments where the 95% confidence lower bound crosses the critical threshold within 14 days, enabling proactive intervention.
 
 #### For AI/GenAI roles:
-- Integrated a **multi-provider GenAI pipeline** (Google Gemini → Groq/Llama 3.3 70B → curated fallback) with automatic failover, generating actionable intervention recommendations for at-risk customer segments with zero single-point-of-failure risk.
+- Integrated a **multi-provider GenAI pipeline** (Google Gemini 3.5 → Groq GPT OSS 120B → Gemini Latest → Groq LTS → curated fallback) with automatic failover, generating actionable intervention recommendations for at-risk customer segments with zero single-point-of-failure risk.
 - Designed structured **prompt engineering** for banking risk analysis, constraining LLM output to 1–2 sentence professional recommendations with temperature 0.4 for deterministic outputs.
 
 #### For Product / Impact-focused roles:
@@ -201,7 +203,7 @@ index.html loads → app.js init()
 ---
 
 ### Skills/Technologies to List
-`Python`, `Flask`, `NumPy`, `Pandas`, `statsmodels`, `Chart.js`, `HTML5/CSS3`, `JavaScript (ES6+)`, `Google Gemini API`, `Groq API`, `Llama 3.3 70B`, `REST APIs`, `Gunicorn`, `Render`, `Time-Series Forecasting`, `Exponential Smoothing`, `Anomaly Detection`, `Prompt Engineering`, `Thread-Safe Caching`, `CI/CD`
+`Python`, `Flask`, `NumPy`, `Pandas`, `statsmodels`, `Chart.js`, `HTML5/CSS3`, `JavaScript (ES6+)`, `Google Gemini API`, `Groq LPU API`, `GPT OSS 120B`, `Llama 3.1 8B`, `REST APIs`, `Gunicorn`, `Render`, `Time-Series Forecasting`, `Exponential Smoothing`, `Anomaly Detection`, `Prompt Engineering`, `Thread-Safe Caching`, `CI/CD`
 
 ---
 
@@ -210,7 +212,7 @@ index.html loads → app.js init()
 These are the "why" stories behind the technical choices — interviewers love these:
 
 1. **"Why Holt-Winters instead of Prophet/LSTM?"** — Holt-Winters is interpretable (critical for regulated banking), lightweight (no heavy ML dependencies), and produces native confidence intervals. It avoids the "black box" problem of neural networks in financial compliance settings.
-2. **"Why a multi-provider GenAI chain?"** — Free-tier APIs have rate limits. By chaining Gemini → Groq → curated fallback, the system never fails to produce output, even during live demos. This mimics enterprise resilience patterns.
+2. **"Why a quality-first cross-provider GenAI waterfall?"** — Free-tier APIs have rate limits and individual models undergo deprecation cycles. By prioritizing the most powerful models first (Gemini 3.5 & Groq 120B) with automatic failover to dynamic aliases and LTS models, the system never fails and always yields maximum reasoning quality.
 3. **"Why HTTP 202 polling instead of WebSockets?"** — The forecasting computation takes 1–3 minutes on cold start. WebSockets would require persistent connections and complicate deployment on Render's free tier. 202 polling is stateless, cloud-native, and the frontend handles it transparently.
 4. **"Why deterministic sampling with zlib.crc32?"** — To ensure the same segment always samples the same customers across API calls and server restarts. This prevents "jitter" in the heatmap when users compare scenarios — a subtle UX detail that makes stress-testing reliable.
 5. **"Why vanilla JS instead of React?"** — For a single-page dashboard with no routing, React adds build complexity and bundle size without proportional benefit. Vanilla JS with a clear state object keeps the codebase auditable and the frontend zero-dependency.

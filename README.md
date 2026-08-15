@@ -27,7 +27,7 @@
           ┌────────────▼┐ ┌───▼────┐ ┌▼─────┐ ┌▼──────────────┐
           │ FHS         │ │Forecast│ │Anomaly│ │ LLM Explainer │
           │ Calculator  │ │  Engine│ │Detect.│ │(Gemini + Groq)│
-          │ (stats/math)│ │ (Holt- │ │       │ │ (Llama 3.3)   │
+          │ (stats/math)│ │ (Holt- │ │       │ │ (GPT OSS 120B)│
           │             │ │ Winters)│ │       │ │               │
           └──────┬──────┘ └───┬────┘ └┬─────┘ └┬──────────────┘
                  │            │       │        │
@@ -145,7 +145,7 @@ The remaining RF features (`bal_trend`, `income_regularity`, `vel_mean`, etc.) a
 - **Anomaly Detection:** Automatic flagging of segments where forecast lower bound drops below the critical threshold.
 - **Stress Testing:** Interactive expense shock slider (0–50%). Models inflation spikes or economic crises in real-time.
 - **Tier-Aware Recommended Actions:** Each alert includes a specific recommended action that changes based on the segment's current risk tier — escalate for RED, monitor for AMBER, retain/upsell for GREEN.
-- **GenAI Intervention Plans:** Multi-provider AI engine (Google Gemini → Groq/Llama 3.3 70B) generating actionable intervention recommendations.
+- **GenAI Intervention Plans:** Multi-provider AI engine (Google Gemini 3.5 → Groq GPT OSS 120B → Gemini Latest → Groq LTS → Curated Fallback) generating actionable intervention recommendations.
 - **Model Performance Dashboard:** Interactive section showing classification accuracy, forecast comparison tables, clustering validation, and statistical test results.
 
 ---
