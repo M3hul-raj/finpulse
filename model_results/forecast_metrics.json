@@ -1,0 +1,150 @@
+{
+  "per_segment": {
+    "IT Salaried": {
+      "naive": {
+        "rmse": 0.2192,
+        "mae": 0.1719,
+        "mape": 0.18
+      },
+      "sma": {
+        "rmse": 0.2933,
+        "mae": 0.2599,
+        "mape": 0.28
+      },
+      "holt_winters": {
+        "rmse": 0.1728,
+        "mae": 0.1325,
+        "mape": 0.14
+      }
+    },
+    "Gig/Freelance": {
+      "naive": {
+        "rmse": 0.2871,
+        "mae": 0.2508,
+        "mape": 0.35
+      },
+      "sma": {
+        "rmse": 0.337,
+        "mae": 0.3067,
+        "mape": 0.43
+      },
+      "holt_winters": {
+        "rmse": 0.2777,
+        "mae": 0.2427,
+        "mape": 0.34
+      }
+    },
+    "Students": {
+      "naive": {
+        "rmse": 0.3984,
+        "mae": 0.2828,
+        "mape": 0.45
+      },
+      "sma": {
+        "rmse": 0.6096,
+        "mae": 0.5412,
+        "mape": 0.87
+      },
+      "holt_winters": {
+        "rmse": 0.2122,
+        "mae": 0.1616,
+        "mape": 0.26
+      }
+    },
+    "Small Business": {
+      "naive": {
+        "rmse": 0.114,
+        "mae": 0.0841,
+        "mape": 0.1
+      },
+      "sma": {
+        "rmse": 0.1086,
+        "mae": 0.0906,
+        "mape": 0.11
+      },
+      "holt_winters": {
+        "rmse": 0.128,
+        "mae": 0.0947,
+        "mape": 0.12
+      }
+    },
+    "Govt/PSU": {
+      "naive": {
+        "rmse": 0.2654,
+        "mae": 0.1995,
+        "mape": 0.21
+      },
+      "sma": {
+        "rmse": 0.3199,
+        "mae": 0.2677,
+        "mape": 0.28
+      },
+      "holt_winters": {
+        "rmse": 0.2268,
+        "mae": 0.1673,
+        "mape": 0.18
+      }
+    },
+    "Retirees": {
+      "naive": {
+        "rmse": 0.2351,
+        "mae": 0.1933,
+        "mape": 0.23
+      },
+      "sma": {
+        "rmse": 0.2002,
+        "mae": 0.1613,
+        "mape": 0.19
+      },
+      "holt_winters": {
+        "rmse": 0.3429,
+        "mae": 0.2944,
+        "mape": 0.35
+      }
+    },
+    "Daily Wage": {
+      "naive": {
+        "rmse": 0.497,
+        "mae": 0.44,
+        "mape": 0.89
+      },
+      "sma": {
+        "rmse": 0.7563,
+        "mae": 0.7201,
+        "mape": 1.45
+      },
+      "holt_winters": {
+        "rmse": 0.517,
+        "mae": 0.4609,
+        "mape": 0.93
+      }
+    },
+    "Young Professionals": {
+      "naive": {
+        "rmse": 0.21,
+        "mae": 0.1477,
+        "mape": 0.2
+      },
+      "sma": {
+        "rmse": 0.1992,
+        "mae": 0.1404,
+        "mape": 0.19
+      },
+      "holt_winters": {
+        "rmse": 0.1956,
+        "mae": 0.1368,
+        "mape": 0.18
+      }
+    }
+  },
+  "summary": {
+    "hw_wins_vs_naive": "5/8",
+    "avg_rmse_improvement_pct": 3.8,
+    "models_compared": [
+      "naive",
+      "sma",
+      "holt_winters"
+    ],
+    "evaluation_method": "80/20 train/test split on historical FHS series"
+  }
+}

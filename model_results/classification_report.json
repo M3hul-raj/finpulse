@@ -1,0 +1,301 @@
+{
+  "feature_columns": [
+    "bal_mean",
+    "bal_std",
+    "bal_trend",
+    "bal_cv",
+    "fhs_std",
+    "income_regularity",
+    "vel_mean",
+    "vel_max",
+    "pct_negative_days",
+    "max_drawdown",
+    "runway_mean"
+  ],
+  "class_names": [
+    "High",
+    "Low",
+    "Medium"
+  ],
+  "train_size": 800,
+  "test_size": 200,
+  "models": {
+    "logistic_regression": {
+      "accuracy": 0.945,
+      "report": {
+        "High": {
+          "precision": 0.9167,
+          "recall": 0.9778,
+          "f1-score": 0.9462,
+          "support": 45.0
+        },
+        "Low": {
+          "precision": 0.9815,
+          "recall": 0.9636,
+          "f1-score": 0.9725,
+          "support": 110.0
+        },
+        "Medium": {
+          "precision": 0.8864,
+          "recall": 0.8667,
+          "f1-score": 0.8764,
+          "support": 45.0
+        },
+        "accuracy": 0.945,
+        "macro avg": {
+          "precision": 0.9282,
+          "recall": 0.936,
+          "f1-score": 0.9317,
+          "support": 200.0
+        },
+        "weighted avg": {
+          "precision": 0.9455,
+          "recall": 0.945,
+          "f1-score": 0.945,
+          "support": 200.0
+        }
+      }
+    },
+    "random_forest": {
+      "accuracy": 0.965,
+      "report": {
+        "High": {
+          "precision": 0.9778,
+          "recall": 0.9778,
+          "f1-score": 0.9778,
+          "support": 45.0
+        },
+        "Low": {
+          "precision": 0.9907,
+          "recall": 0.9636,
+          "f1-score": 0.977,
+          "support": 110.0
+        },
+        "Medium": {
+          "precision": 0.8958,
+          "recall": 0.9556,
+          "f1-score": 0.9247,
+          "support": 45.0
+        },
+        "accuracy": 0.965,
+        "macro avg": {
+          "precision": 0.9548,
+          "recall": 0.9657,
+          "f1-score": 0.9598,
+          "support": 200.0
+        },
+        "weighted avg": {
+          "precision": 0.9664,
+          "recall": 0.965,
+          "f1-score": 0.9654,
+          "support": 200.0
+        }
+      }
+    }
+  },
+  "confusion_matrix": [
+    [
+      44,
+      0,
+      1
+    ],
+    [
+      0,
+      106,
+      4
+    ],
+    [
+      1,
+      1,
+      43
+    ]
+  ],
+  "feature_importance": {
+    "bal_trend": 0.2401,
+    "bal_std": 0.1904,
+    "bal_mean": 0.1492,
+    "income_regularity": 0.106,
+    "vel_mean": 0.1019,
+    "runway_mean": 0.079,
+    "vel_max": 0.0498,
+    "max_drawdown": 0.047,
+    "fhs_std": 0.0202,
+    "bal_cv": 0.0163,
+    "pct_negative_days": 0.0
+  },
+  "roc_data": {
+    "High": {
+      "fpr": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0065,
+        0.0065,
+        0.0323,
+        0.0452,
+        0.0516,
+        1.0
+      ],
+      "tpr": [
+        0.0,
+        0.5778,
+        0.6,
+        0.6667,
+        0.6889,
+        0.7556,
+        0.7778,
+        0.8222,
+        0.8889,
+        0.9778,
+        0.9778,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "auc": 0.9999
+    },
+    "Low": {
+      "fpr": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0111,
+        0.0111,
+        0.0556,
+        0.0556,
+        0.0778,
+        0.1111,
+        0.1111,
+        0.1333,
+        0.1556,
+        0.1556,
+        0.1889,
+        0.2,
+        0.2667,
+        1.0
+      ],
+      "tpr": [
+        0.0,
+        0.6636,
+        0.6727,
+        0.7182,
+        0.7364,
+        0.8,
+        0.8182,
+        0.8364,
+        0.8545,
+        0.8636,
+        0.8818,
+        0.9091,
+        0.9091,
+        0.9727,
+        0.9727,
+        0.9818,
+        0.9818,
+        0.9818,
+        0.9909,
+        0.9909,
+        0.9909,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "auc": 0.9964
+    },
+    "Medium": {
+      "fpr": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0065,
+        0.0065,
+        0.0065,
+        0.0129,
+        0.0129,
+        0.0129,
+        0.0194,
+        0.0194,
+        0.0194,
+        0.0194,
+        0.0387,
+        0.0452,
+        0.0968,
+        0.0968,
+        0.1161,
+        0.1355,
+        0.1613,
+        0.1677,
+        0.1935,
+        0.2,
+        0.2194,
+        0.2323,
+        0.2839,
+        0.3161,
+        0.3548,
+        0.3613,
+        1.0
+      ],
+      "tpr": [
+        0.0,
+        0.3333,
+        0.4222,
+        0.4444,
+        0.5556,
+        0.5778,
+        0.6222,
+        0.6667,
+        0.6667,
+        0.7333,
+        0.8222,
+        0.8222,
+        0.8444,
+        0.8889,
+        0.9556,
+        0.9556,
+        0.9778,
+        0.9778,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "auc": 0.9917
+    }
+  },
+  "notes": {
+    "leakage_prevention": "fhs_mean excluded from inputs because risk_tier = bucket(fhs_mean, [35, 60]). Including it would let the model trivially re-derive the threshold rule.",
+    "structural_note": "The remaining features (bal_trend, vel_mean, etc.) are decomposed components of the signal that built the FHS composite score. The model is largely learning to reconstruct a known weighted formula from its components, which is expected for a synthetic-data proof of concept."
+  }
+}

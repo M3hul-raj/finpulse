@@ -1,0 +1,1293 @@
+{
+  "k_range": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "inertias": [
+    5843.85,
+    4436.75,
+    3457.98,
+    2535.23,
+    1986.68,
+    1653.07,
+    1429.05,
+    1309.0,
+    1198.41
+  ],
+  "silhouette_scores": [
+    0.5262,
+    0.4626,
+    0.4635,
+    0.4636,
+    0.4686,
+    0.3984,
+    0.381,
+    0.3555,
+    0.3445
+  ],
+  "best_k": 2,
+  "best_silhouette": 0.5262,
+  "pca_variance_explained": [
+    0.6203,
+    0.1007
+  ],
+  "pca_data": [
+    {
+      "x": 4.7352,
+      "y": 0.2285,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.1413,
+      "y": 0.2425,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.3825,
+      "y": 0.2875,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 4.7574,
+      "y": 0.2268,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.1938,
+      "y": 0.289,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.6023,
+      "y": 0.2758,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.409,
+      "y": 0.3315,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.4097,
+      "y": 0.2556,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 4.8985,
+      "y": 0.2705,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.5187,
+      "y": 0.3595,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 4.9007,
+      "y": 0.2383,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 4.9304,
+      "y": 0.2812,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 4.6238,
+      "y": 0.1765,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.0368,
+      "y": 0.239,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.4055,
+      "y": 0.3163,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.2953,
+      "y": 0.2615,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.4719,
+      "y": 0.2141,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.5151,
+      "y": 0.3097,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.4716,
+      "y": 0.2842,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.1375,
+      "y": 0.2516,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.1601,
+      "y": 0.2154,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.3896,
+      "y": 0.3296,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.414,
+      "y": 0.1727,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.0374,
+      "y": 0.2842,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": 5.3196,
+      "y": 0.2111,
+      "cluster": 1,
+      "segment": "IT Salaried"
+    },
+    {
+      "x": -0.7956,
+      "y": -0.1729,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -1.2737,
+      "y": -0.1832,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -0.6599,
+      "y": -0.1546,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -1.1997,
+      "y": -0.3305,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -2.0208,
+      "y": -0.2893,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -0.9477,
+      "y": -0.2174,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -1.4129,
+      "y": -0.289,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -0.8214,
+      "y": -0.2671,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -1.5917,
+      "y": -0.1944,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -0.8078,
+      "y": -0.078,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -1.0144,
+      "y": -0.0703,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -1.1574,
+      "y": -0.1206,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -1.0089,
+      "y": -0.08,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -1.0463,
+      "y": -0.0492,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -0.6139,
+      "y": -0.0962,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -0.7462,
+      "y": -0.2717,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -1.0272,
+      "y": -0.1023,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -0.8973,
+      "y": -0.084,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -0.9583,
+      "y": -0.2446,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -0.7772,
+      "y": -0.0457,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -1.4239,
+      "y": -0.2773,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -1.2364,
+      "y": -0.233,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -1.3053,
+      "y": -0.063,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -1.1207,
+      "y": -0.146,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -0.81,
+      "y": -0.2288,
+      "cluster": 0,
+      "segment": "Gig/Freelance"
+    },
+    {
+      "x": -2.691,
+      "y": -0.1509,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -3.0281,
+      "y": -0.0708,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -3.5092,
+      "y": -0.0887,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.5541,
+      "y": 0.0097,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.7314,
+      "y": -0.1936,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.9426,
+      "y": -0.1977,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.9173,
+      "y": -0.1763,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.6067,
+      "y": -0.0558,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.9264,
+      "y": -0.0519,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.6409,
+      "y": -0.0305,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.3754,
+      "y": -0.1157,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.7353,
+      "y": -0.0684,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.8989,
+      "y": -0.0941,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.6729,
+      "y": -0.0167,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.658,
+      "y": -0.2255,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.6389,
+      "y": -0.1378,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.8567,
+      "y": -0.1076,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.8361,
+      "y": -0.0498,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.6441,
+      "y": -0.0773,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -3.2736,
+      "y": -0.1936,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -3.1434,
+      "y": -0.0304,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -3.4931,
+      "y": -0.1941,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.8641,
+      "y": -0.2872,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -3.1172,
+      "y": -0.0153,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": -2.4389,
+      "y": -0.2069,
+      "cluster": 0,
+      "segment": "Students"
+    },
+    {
+      "x": 0.0237,
+      "y": -0.0655,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.4694,
+      "y": -0.0601,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.5338,
+      "y": -0.0882,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.0036,
+      "y": -0.1073,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.5959,
+      "y": -0.0982,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.4487,
+      "y": -0.1453,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.0498,
+      "y": -0.2765,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.8312,
+      "y": -0.1274,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.2366,
+      "y": -0.1362,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": -0.1095,
+      "y": -0.2797,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.6877,
+      "y": -0.0861,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.4694,
+      "y": -0.1051,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.2165,
+      "y": -0.1754,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.5274,
+      "y": -0.0638,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.3087,
+      "y": -0.1117,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": -0.0385,
+      "y": -0.0784,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": -0.221,
+      "y": -0.0904,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.2382,
+      "y": -0.1113,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.7995,
+      "y": -0.0736,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.0,
+      "y": -0.1153,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.0432,
+      "y": -0.1422,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": -0.3645,
+      "y": -0.3082,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.3203,
+      "y": -0.1656,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": -0.0596,
+      "y": -0.2538,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 0.3608,
+      "y": -0.2123,
+      "cluster": 0,
+      "segment": "Small Business"
+    },
+    {
+      "x": 2.7265,
+      "y": 0.0146,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.588,
+      "y": 0.0407,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.7523,
+      "y": 0.0648,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.663,
+      "y": 0.0677,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.6372,
+      "y": 0.0317,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.6691,
+      "y": -0.0332,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.5957,
+      "y": 0.0805,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.6107,
+      "y": -0.001,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.7506,
+      "y": 0.0711,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.7474,
+      "y": 0.0614,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.3846,
+      "y": -0.035,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.5458,
+      "y": 0.0377,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.7565,
+      "y": -0.012,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.773,
+      "y": 0.0884,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.7454,
+      "y": -0.0191,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.6677,
+      "y": 0.0299,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.4517,
+      "y": 0.0578,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.503,
+      "y": -0.0272,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.6517,
+      "y": -0.0074,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.9912,
+      "y": 0.1131,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.6712,
+      "y": 0.0383,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.5033,
+      "y": 0.0016,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.9131,
+      "y": 0.118,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.645,
+      "y": -0.0087,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": 2.6618,
+      "y": 0.0104,
+      "cluster": 1,
+      "segment": "Govt/PSU"
+    },
+    {
+      "x": -0.5543,
+      "y": -0.3154,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.2631,
+      "y": -0.2303,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.2554,
+      "y": -0.1759,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.4269,
+      "y": -0.288,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.1268,
+      "y": -0.2266,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.235,
+      "y": -0.2612,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.224,
+      "y": -0.1756,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.4542,
+      "y": -0.2003,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.4083,
+      "y": -0.2414,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.1046,
+      "y": -0.225,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.2879,
+      "y": -0.2652,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.479,
+      "y": -0.2674,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.1123,
+      "y": -0.224,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.1862,
+      "y": -0.2342,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.4889,
+      "y": -0.2428,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.0938,
+      "y": -0.1825,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.3456,
+      "y": -0.25,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.3833,
+      "y": -0.2504,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": 0.0,
+      "y": -0.1798,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.2841,
+      "y": -0.2386,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.2155,
+      "y": -0.2025,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.0057,
+      "y": -0.1991,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.0795,
+      "y": -0.1611,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.52,
+      "y": -0.3025,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -0.4433,
+      "y": -0.2942,
+      "cluster": 0,
+      "segment": "Retirees"
+    },
+    {
+      "x": -3.5463,
+      "y": 0.1058,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.0721,
+      "y": -0.0692,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.5691,
+      "y": 0.1352,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.2087,
+      "y": 0.0109,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.0816,
+      "y": 0.1451,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.182,
+      "y": -0.1484,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -2.4637,
+      "y": 1.8317,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -4.1556,
+      "y": 3.6229,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.4897,
+      "y": -0.0546,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.0547,
+      "y": -0.0455,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.2189,
+      "y": 0.0173,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.5716,
+      "y": 0.1166,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -2.8569,
+      "y": -0.2378,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.3316,
+      "y": 0.0831,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.1546,
+      "y": 0.1499,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.5869,
+      "y": 0.0296,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.8879,
+      "y": 0.3405,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.6031,
+      "y": 0.1025,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.1738,
+      "y": -0.0055,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.6791,
+      "y": 0.0213,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.5494,
+      "y": 0.2438,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.1886,
+      "y": 0.6175,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.2572,
+      "y": 0.217,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.0414,
+      "y": -0.0267,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -3.3207,
+      "y": 0.047,
+      "cluster": 0,
+      "segment": "Daily Wage"
+    },
+    {
+      "x": -0.5038,
+      "y": -0.0307,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.6771,
+      "y": -0.1023,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.3288,
+      "y": -0.0295,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.2701,
+      "y": 0.0175,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.3776,
+      "y": -0.0878,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.1571,
+      "y": -0.1221,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.374,
+      "y": -0.0717,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.5465,
+      "y": -0.0809,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.2295,
+      "y": -0.1111,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.3969,
+      "y": -0.0265,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.2447,
+      "y": -0.0341,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -1.1002,
+      "y": -0.1974,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.2426,
+      "y": -0.0001,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.8918,
+      "y": -0.0781,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.479,
+      "y": -0.1519,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.3265,
+      "y": -0.1303,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.3246,
+      "y": -0.0902,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.1615,
+      "y": -0.0049,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.3167,
+      "y": -0.1386,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.3854,
+      "y": -0.1432,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.6916,
+      "y": -0.1331,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.7806,
+      "y": -0.2184,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -1.0059,
+      "y": -0.2161,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.2884,
+      "y": -0.0359,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    },
+    {
+      "x": -0.731,
+      "y": -0.2619,
+      "cluster": 0,
+      "segment": "Young Professionals"
+    }
+  ],
+  "crosstab": {
+    "segments": [
+      "Daily Wage",
+      "Gig/Freelance",
+      "Govt/PSU",
+      "IT Salaried",
+      "Retirees",
+      "Small Business",
+      "Students",
+      "Young Professionals"
+    ],
+    "clusters": [
+      0,
+      1
+    ],
+    "values": [
+      [
+        125,
+        0
+      ],
+      [
+        125,
+        0
+      ],
+      [
+        0,
+        125
+      ],
+      [
+        0,
+        125
+      ],
+      [
+        125,
+        0
+      ],
+      [
+        125,
+        0
+      ],
+      [
+        125,
+        0
+      ],
+      [
+        125,
+        0
+      ]
+    ]
+  }
+}
