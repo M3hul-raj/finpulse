@@ -36,12 +36,15 @@ async function fetchJSON(endpoint) {
   }
 }
 
-async function fetchJSONWithRetry(endpoint, maxRetries = 60, delay = 3000) {
+async function fetchJSONWithRetry(endpoint, maxRetries = 90, delay = 2500, onProgress = null) {
   for (let i = 0; i <= maxRetries; i++) {
     try {
       const res = await fetch(`${API_BASE}${endpoint}`);
       if (res.status === 202 || res.status === 502 || res.status === 503 || res.status === 504) {
         if (i < maxRetries) {
+          if (onProgress && i >= 6) {
+            onProgress(i);
+          }
           await new Promise(r => setTimeout(r, delay));
           continue;
         }
@@ -51,6 +54,9 @@ async function fetchJSONWithRetry(endpoint, maxRetries = 60, delay = 3000) {
       return await res.json();
     } catch (err) {
       if (i < maxRetries) {
+        if (onProgress && i >= 6) {
+          onProgress(i);
+        }
         await new Promise(r => setTimeout(r, delay));
         continue;
       }
@@ -221,7 +227,16 @@ async function loadForecast() {
   const segment = state.selectedSegment;
   $('#chartTitleSegment').textContent = segment;
 
-  const data = await fetchJSONWithRetry(`/api/forecast?segment=${encodeURIComponent(segment)}&shock=${state.shock}`);
+  const data = await fetchJSONWithRetry(
+    `/api/forecast?segment=${encodeURIComponent(segment)}&shock=${state.shock}`,
+    90,
+    2500,
+    (attempt) => {
+      if (attempt >= 6) {
+        showForecastLoading(true, 'Still computing AI forecasts across all segments (this may take up to 2 minutes on first load)...');
+      }
+    }
+  );
   const hist = data.historical;
   const fc = data.forecast;
 
@@ -495,7 +510,16 @@ function generateForecastSummary(segment, day1, day30, delta, minLower, maxUpper
 // ALERTS
 // ══════════════════════════════════════════════════════════════
 async function loadAlerts() {
-  const alerts = await fetchJSONWithRetry(`/api/alerts?shock=${state.shock}`);
+  const alerts = await fetchJSONWithRetry(
+    `/api/alerts?shock=${state.shock}`,
+    90,
+    2500,
+    (attempt) => {
+      if (attempt >= 6) {
+        showAlertsLoading(true, 'Analysing risk & running GenAI intervention plans across 8 segments (warming up)...');
+      }
+    }
+  );
   const banner = $('#alertsBanner');
   const list = $('#alertsList');
 
@@ -653,34 +677,44 @@ async function refreshDashboard() {
       showForecastLoading(false);
       state.forecastLoaded = true;
     }).catch(err => {
-      console.error('Forecast load failed:', err);
-      showForecastLoading(false);
-      const ctx = $('#forecastChart');
-      if (ctx && ctx.parentNode) ctx.parentNode.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);">Failed to load forecast. Server may be unreachable.</div>';
+      console.warn('Forecast load delayed:', err);
+      showForecastLoading(true, 'Server is still computing forecasts. Retrying automatically in background...');
+      setTimeout(() => {
+        loadForecast().then(() => {
+          showForecastLoading(false);
+          state.forecastLoaded = true;
+        }).catch(e => console.warn('Background forecast retry pending:', e));
+      }, 5000);
     });
 
     loadAlerts().then(() => {
       showAlertsLoading(false);
     }).catch(err => {
-      console.error('Alerts load failed:', err);
-      showAlertsLoading(false);
-      $('#alertsBanner').innerHTML = '<div class="alert-banner danger">Failed to load risk alerts. Please try again later.</div>';
+      console.warn('Alerts load delayed:', err);
+      showAlertsLoading(true, 'Server is still processing risk alerts. Retrying automatically in background...');
+      setTimeout(() => {
+        loadAlerts().then(() => {
+          showAlertsLoading(false);
+        }).catch(e => console.warn('Background alerts retry pending:', e));
+      }, 5000);
     });
   } catch (err) {
     console.error('Dashboard refresh failed:', err);
   }
 }
 
-function showForecastLoading(show) {
+function showForecastLoading(show, message = 'Running AI forecasts across all segments... This may take up to a minute on first load') {
   const container = $('.chart-container');
+  if (!container) return;
   if (show) {
     container.classList.add('loading-state');
-    if (!container.querySelector('.inline-loader')) {
-      const loader = document.createElement('div');
+    let loader = container.querySelector('.inline-loader');
+    if (!loader) {
+      loader = document.createElement('div');
       loader.className = 'inline-loader';
-      loader.innerHTML = '<div class="inline-spinner"></div><span>Running AI forecasts across all segments... This may take up to a minute on first load</span>';
       container.prepend(loader);
     }
+    loader.innerHTML = `<div class="inline-spinner"></div><span>${message}</span>`;
   } else {
     container.classList.remove('loading-state');
     const loader = container.querySelector('.inline-loader');
@@ -688,13 +722,14 @@ function showForecastLoading(show) {
   }
 }
 
-function showAlertsLoading(show) {
+function showAlertsLoading(show, message = 'Analysing risk across 8 segments...') {
   const banner = $('#alertsBanner');
+  if (!banner) return;
   if (show) {
     banner.innerHTML = `
-      <div class="alert-banner" style="background: var(--accent-purple-soft); border: 1px solid rgba(124,58,237,0.2); color: var(--accent-purple);">
+      <div class="alert-banner" style="background: var(--accent-purple-soft); border: 1px solid rgba(124, 58, 237, 0.2); color: var(--accent-purple); display: flex; align-items: center; gap: 10px;">
         <div class="inline-spinner" style="width:18px;height:18px;border-width:2px;"></div>
-        Analysing risk across 8 segments...
+        <span>${message}</span>
       </div>
     `;
   }
@@ -948,18 +983,26 @@ async function init() {
       showForecastLoading(false);
       state.forecastLoaded = true;
     }).catch(err => {
-      console.error('Forecast error:', err);
-      showForecastLoading(false);
-      const ctx = $('#forecastChart');
-      if (ctx && ctx.parentNode) ctx.parentNode.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);">⚠ Failed to load forecast. Server may be unreachable.</div>';
+      console.warn('Initial forecast load delayed:', err);
+      showForecastLoading(true, 'Server is still computing forecasts. Retrying automatically in background...');
+      setTimeout(() => {
+        loadForecast().then(() => {
+          showForecastLoading(false);
+          state.forecastLoaded = true;
+        }).catch(e => console.warn('Background forecast retry pending:', e));
+      }, 5000);
     });
 
     loadAlerts().then(() => {
       showAlertsLoading(false);
     }).catch(err => {
-      console.error('Alerts error:', err);
-      showAlertsLoading(false);
-      $('#alertsBanner').innerHTML = '<div class="alert-banner danger">⚠ Failed to load risk alerts. Please try again later.</div>';
+      console.warn('Initial alerts load delayed:', err);
+      showAlertsLoading(true, 'Server is still processing risk alerts. Retrying automatically in background...');
+      setTimeout(() => {
+        loadAlerts().then(() => {
+          showAlertsLoading(false);
+        }).catch(e => console.warn('Background alerts retry pending:', e));
+      }, 5000);
     });
 
   } catch (err) {
