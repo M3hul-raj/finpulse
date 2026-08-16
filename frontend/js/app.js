@@ -13,6 +13,8 @@ let state = {
   chart: null,
   forecastLoaded: false,
   baselineHeatmap: null,
+  forecastRetries: 0,
+  alertsRetries: 0,
 };
 
 // ── Theme System ───────────────────────────────────────────────
@@ -676,31 +678,62 @@ async function refreshDashboard() {
     loadForecast().then(() => {
       showForecastLoading(false);
       state.forecastLoaded = true;
+      state.forecastRetries = 0;
     }).catch(err => {
       console.warn('Forecast load delayed:', err);
-      showForecastLoading(true, 'Server is still computing forecasts. Retrying automatically in background...');
-      setTimeout(() => {
-        loadForecast().then(() => {
-          showForecastLoading(false);
-          state.forecastLoaded = true;
-        }).catch(e => console.warn('Background forecast retry pending:', e));
-      }, 5000);
+      if (state.forecastRetries < 2) {
+        state.forecastRetries++;
+        showForecastLoading(true, 'Server is still computing forecasts. Retrying automatically in background...');
+        setTimeout(() => {
+          refreshDashboard();
+        }, 5000);
+      } else {
+        showForecastLoading(true, 'Forecast calculation timed out. <button onclick="manualRetryForecast()" class="preset-btn active" style="margin-left:10px;padding:3px 10px;font-size:11px;cursor:pointer;">Retry</button>');
+      }
     });
 
     loadAlerts().then(() => {
       showAlertsLoading(false);
+      state.alertsRetries = 0;
     }).catch(err => {
       console.warn('Alerts load delayed:', err);
-      showAlertsLoading(true, 'Server is still processing risk alerts. Retrying automatically in background...');
-      setTimeout(() => {
-        loadAlerts().then(() => {
-          showAlertsLoading(false);
-        }).catch(e => console.warn('Background alerts retry pending:', e));
-      }, 5000);
+      if (state.alertsRetries < 2) {
+        state.alertsRetries++;
+        showAlertsLoading(true, 'Server is still processing risk alerts. Retrying automatically in background...');
+        setTimeout(() => {
+          loadAlerts().then(() => {
+            showAlertsLoading(false);
+            state.alertsRetries = 0;
+          }).catch(e => console.warn('Background alerts retry pending:', e));
+        }, 5000);
+      } else {
+        showAlertsLoading(true, 'Risk alerts calculation timed out. <button onclick="manualRetryAlerts()" class="preset-btn active" style="margin-left:10px;padding:3px 10px;font-size:11px;cursor:pointer;">Retry</button>');
+      }
     });
   } catch (err) {
     console.error('Dashboard refresh failed:', err);
   }
+}
+
+function manualRetryForecast() {
+  state.forecastRetries = 0;
+  showForecastLoading(true, 'Reconnecting to forecast engine...');
+  loadForecast().then(() => {
+    showForecastLoading(false);
+    state.forecastLoaded = true;
+  }).catch(err => {
+    console.error('Manual forecast retry failed:', err);
+  });
+}
+
+function manualRetryAlerts() {
+  state.alertsRetries = 0;
+  showAlertsLoading(true, 'Reconnecting to alerts engine...');
+  loadAlerts().then(() => {
+    showAlertsLoading(false);
+  }).catch(err => {
+    console.error('Manual alerts retry failed:', err);
+  });
 }
 
 function showForecastLoading(show, message = 'Running AI forecasts across all segments... This may take up to a minute on first load') {
@@ -982,27 +1015,41 @@ async function init() {
     loadForecast().then(() => {
       showForecastLoading(false);
       state.forecastLoaded = true;
+      state.forecastRetries = 0;
     }).catch(err => {
       console.warn('Initial forecast load delayed:', err);
-      showForecastLoading(true, 'Server is still computing forecasts. Retrying automatically in background...');
-      setTimeout(() => {
-        loadForecast().then(() => {
-          showForecastLoading(false);
-          state.forecastLoaded = true;
-        }).catch(e => console.warn('Background forecast retry pending:', e));
-      }, 5000);
+      if (state.forecastRetries < 2) {
+        state.forecastRetries++;
+        showForecastLoading(true, 'Server is still computing forecasts. Retrying automatically in background...');
+        setTimeout(() => {
+          loadForecast().then(() => {
+            showForecastLoading(false);
+            state.forecastLoaded = true;
+            state.forecastRetries = 0;
+          }).catch(e => console.warn('Background forecast retry pending:', e));
+        }, 5000);
+      } else {
+        showForecastLoading(true, 'Forecast calculation timed out. <button onclick="manualRetryForecast()" class="preset-btn active" style="margin-left:10px;padding:3px 10px;font-size:11px;cursor:pointer;">Retry</button>');
+      }
     });
 
     loadAlerts().then(() => {
       showAlertsLoading(false);
+      state.alertsRetries = 0;
     }).catch(err => {
       console.warn('Initial alerts load delayed:', err);
-      showAlertsLoading(true, 'Server is still processing risk alerts. Retrying automatically in background...');
-      setTimeout(() => {
-        loadAlerts().then(() => {
-          showAlertsLoading(false);
-        }).catch(e => console.warn('Background alerts retry pending:', e));
-      }, 5000);
+      if (state.alertsRetries < 2) {
+        state.alertsRetries++;
+        showAlertsLoading(true, 'Server is still processing risk alerts. Retrying automatically in background...');
+        setTimeout(() => {
+          loadAlerts().then(() => {
+            showAlertsLoading(false);
+            state.alertsRetries = 0;
+          }).catch(e => console.warn('Background alerts retry pending:', e));
+        }, 5000);
+      } else {
+        showAlertsLoading(true, 'Risk alerts calculation timed out. <button onclick="manualRetryAlerts()" class="preset-btn active" style="margin-left:10px;padding:3px 10px;font-size:11px;cursor:pointer;">Retry</button>');
+      }
     });
 
   } catch (err) {

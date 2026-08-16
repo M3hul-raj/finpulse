@@ -16,8 +16,8 @@ import zlib
 from fhs_calculator import compute_fhs, get_risk_label
 
 FORECAST_DAYS = 30
-LOOKBACK_DAYS = 30       # Days of historical FHS to build time series
-SAMPLE_CUSTOMERS = 20    # Customers sampled per segment (CLT: 20 is sufficient)
+LOOKBACK_DAYS = 45       # Days of historical FHS to build time series
+SAMPLE_CUSTOMERS = 30    # Customers sampled per segment (CLT: 30 is sufficient)
 ROLLING_WINDOW = 180     # Rolling window size for FHS computation (days of balance data)
 
 
