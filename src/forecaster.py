@@ -76,7 +76,8 @@ def forecast_segment(series: pd.Series) -> pd.DataFrame:
         ).fit(optimized=True)
         forecast_values = model.forecast(FORECAST_DAYS).values
         model_used = "holt"
-    except Exception:
+    except Exception as e:
+        print(f"    Holt failed for segment: {e}")
         pass
 
     # Attempt 2: Simple Exponential Smoothing
@@ -93,7 +94,8 @@ def forecast_segment(series: pd.Series) -> pd.DataFrame:
             trend_correction = np.arange(1, FORECAST_DAYS + 1) * slope
             forecast_values = base_forecast + trend_correction
             model_used = "ses"
-        except Exception:
+        except Exception as e:
+            print(f"    SES failed for segment: {e}")
             pass
 
     # Attempt 3: Linear extrapolation (last resort)

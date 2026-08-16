@@ -165,7 +165,7 @@ def api_segments():
 
 @app.route("/api/portfolio")
 def api_portfolio():
-    shock = int(request.args.get("shock", 0))
+    shock = request.args.get("shock", 0, type=int)
 
     # Non-blocking: return 202 if heatmap not cached yet
     key = f"heatmap_{shock}"
@@ -187,7 +187,7 @@ def api_portfolio():
 
 @app.route("/api/heatmap")
 def api_heatmap():
-    shock = int(request.args.get("shock", 0))
+    shock = request.args.get("shock", 0, type=int)
 
     # Non-blocking: return 202 if heatmap not cached yet
     key = f"heatmap_{shock}"
@@ -214,7 +214,7 @@ def api_heatmap():
 
 @app.route("/api/forecast")
 def api_forecast():
-    shock = int(request.args.get("shock", 0))
+    shock = request.args.get("shock", 0, type=int)
     segment = request.args.get("segment", "Daily Wage")
 
     # Non-blocking: if forecasts aren't cached yet, return 202 and let background compute
@@ -249,7 +249,7 @@ def api_forecast():
 
 @app.route("/api/alerts")
 def api_alerts():
-    shock = int(request.args.get("shock", 0))
+    shock = request.args.get("shock", 0, type=int)
 
     # Non-blocking: if forecasts aren't cached yet, return 202 and let background compute
     key = f"forecasts_{shock}"
