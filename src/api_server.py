@@ -136,7 +136,7 @@ def _get_heatmap(shock_pct):
 def _background_precompute():
     """Background thread: pre-compute heatmap + forecasts after server is live."""
     import time
-    time.sleep(2)  # Let gunicorn bind the port before doing heavy work
+    time.sleep(15)  # Let gunicorn bind the port & pass Render health check first
     print("Background: Pre-computing baseline heatmap...")
     _get_heatmap(0)
     print("Background: Heatmap ready!")

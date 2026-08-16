@@ -12,7 +12,7 @@ fi
 
 # Launch gunicorn with the Flask app
 exec gunicorn src.api_server:app \
-    --bind 0.0.0.0:$PORT \
+    --bind 0.0.0.0:${PORT:-10000} \
     --workers 1 \
     --threads 4 \
     --timeout 120
