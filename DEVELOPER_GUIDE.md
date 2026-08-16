@@ -20,7 +20,7 @@
 
 ---
 
-### Backend: `src/` (6 Python modules)
+### Backend: `src/` (7 Python modules)
 
 #### `customer_generator.py` — Synthetic Data Engine
 - **What it does**: Generates 730,000 rows of daily balance data for 1,000 customers across 8 banking segments.
@@ -71,6 +71,11 @@
   5. **Curated fallback** — hardcoded segment-specific responses (8 segments covered).
 - **Prompt engineering**: Structured risk analyst prompt with segment data, severity, and FHS trajectory.
 - **Resilience**: 4 levels of live cloud failover + offline banking matrix ensure zero single-point-of-failure risk.
+
+#### `ml_pipeline.py` — Classification & Statistical Analysis
+- **What it does**: Trains Logistic Regression and Random Forest classifiers on segment-level features, runs ANOVA/Spearman statistical tests, performs K-Means clustering with PCA, and evaluates Holt-Winters vs. naive forecasting baselines.
+- **Output**: `model_results/*.json` (classification_report, clustering, forecast_metrics, statistical_tests) + `data/features.csv`.
+- **Key detail**: Excludes `fhs_mean` from classifier inputs to prevent data leakage (FHS is the target, not a feature).
 
 #### `api_server.py` — Flask REST API
 - **What it does**: Wraps all modules into a REST API and serves the frontend.
@@ -124,13 +129,16 @@
 
 ### Tests: `tests/`
 
-#### `test_core.py` — 12 Unit Tests
+#### `test_core.py` — 22 Unit Tests
 
 | Module | Tests | What's Verified |
 |---|---|---|
 | `customer_generator` | 4 | Data shape (730K×4), column names, all 8 segments present, 125 customers each |
-| `fhs_calculator` | 5 | FHS range [0,100], negative balance penalized, risk label thresholds, segment output completeness |
-| `anomaly` | 3 | Returns list, flags CRITICAL for low FHS, doesn't flag healthy segments |
+| `fhs_calculator` | 6 | FHS range [0,100], negative balance penalized, risk label thresholds, segment output completeness, sub-score columns, sub-score variation across segments |
+| `anomaly` | 5 | Returns list, flags CRITICAL for low FHS, doesn't flag healthy segments, worst-case/day-30 horizon alignment, alert action matches severity |
+| `ml_pipeline` | 4 | Features CSV exists, `fhs_mean` excluded from model inputs, model_results JSON valid, RF accuracy in healthy range |
+| `forecaster` | 1 | Confidence band grows with forecast horizon |
+| `api_server` | 2 | `/api/segments` returns 8 segments, `/api/model-metrics` returns valid JSON |
 
 - **Self-contained**: Session-scoped fixture generates data internally — no CSV dependency.
 - **Run**: `pytest tests/ -v` from project root.
