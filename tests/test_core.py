@@ -52,13 +52,46 @@ def test_segment_customer_counts(customer_data):
         assert cust_count == 125, f"{seg} has {cust_count} customers, expected 125"
 
 
+def test_generator_is_deterministic_across_repeated_calls():
+    """generate_all_customers(seed=42) must be repeatable regardless of prior RNG calls."""
+    np.random.seed(999)
+    _ = np.random.random(10)
+    df1 = generate_all_customers(seed=42)
+    df2 = generate_all_customers(seed=42)
+    assert df1.equals(df2)
+    df3 = generate_all_customers(seed=99)
+    assert not df1.equals(df3)
+
+
 # ── fhs_calculator tests ──────────────────────────────────────────────────────
 
 def test_fhs_range():
     """FHS score must always be between 0 and 100."""
-    balances = pd.Series(np.random.normal(50000, 10000, 730))
+    rng = np.random.default_rng(42)
+    balances = pd.Series(rng.normal(50000, 10000, 730))
     score = compute_fhs(balances)
     assert 0 <= score <= 100, f"FHS out of range: {score}"
+
+
+def test_fhs_handles_short_and_61_to_90_day_windows_without_nan():
+    """compute_fhs must not return NaN on 61-90 day windows with a single monthly delta."""
+    dates = pd.date_range("2024-01-01", periods=75, freq="D")
+    balances = pd.Series(np.linspace(20000, 25000, 75), index=dates)
+    score = compute_fhs(balances)
+    assert not np.isnan(score)
+    assert 0 <= score <= 100
+
+
+def test_vectorized_fhs_matches_scalar_compute_fhs(customer_data):
+    """Vectorized compute_fhs_matrix must match scalar compute_fhs exactly."""
+    from fhs_calculator import compute_fhs_matrix
+    sample = customer_data[customer_data["customer_id"] <= 20].pivot(
+        index="date", columns="customer_id", values="balance"
+    )
+    sample.index = pd.to_datetime(sample.index)
+    vec_vals, *_ = compute_fhs_matrix(sample.iloc[:180])
+    sca_vals = np.array([compute_fhs(sample[c].iloc[:180]) for c in sample.columns])
+    assert np.max(np.abs(vec_vals - sca_vals)) == 0.0
 
 
 def test_fhs_negative_balance_penalized():
@@ -239,7 +272,7 @@ def test_model_results_json_valid():
 
 
 def test_rf_accuracy_in_healthy_range():
-    """RF accuracy should be 75-97% — too high suggests leakage, too low suggests bad features."""
+    """Audited RF accuracy should exceed majority baseline without exceeding 0.97 leakage bound."""
     import json
     path = os.path.join(os.path.dirname(__file__), "..", "model_results", "classification_report.json")
     if not os.path.exists(path):
@@ -247,7 +280,8 @@ def test_rf_accuracy_in_healthy_range():
     with open(path) as f:
         data = json.load(f)
     rf_acc = data["models"]["random_forest"]["accuracy"]
-    assert 0.70 <= rf_acc <= 0.97, f"RF accuracy {rf_acc} outside healthy range [0.70, 0.97]"
+    maj_acc = data["models"]["majority_class"]["accuracy"]
+    assert maj_acc < rf_acc <= 0.97, f"Audited RF accuracy {rf_acc} unexpected vs majority {maj_acc}"
 
 
 # ── Forecaster confidence band test ──────────────────────────────────────────

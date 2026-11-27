@@ -1,0 +1,13 @@
+.git
+.github
+.venv
+venv
+.env
+.pytest_cache
+__pycache__
+*.pyc
+*.pyo
+demo
+lighthouse_report.json
+PROJECT_DUMP_FOR_TEAMMATE.md
+data/*.csv

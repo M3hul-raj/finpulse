@@ -1,16 +1,21 @@
 {
+  "evaluation_protocol": "Customer-grouped, time-aware Year-1 (days 0..364) -> Year-2 (days 365..729) risk_tier evaluation excluding direct FHS formula inputs, plus leakage audit and forward FHS decline tasks.",
   "feature_columns": [
-    "bal_mean",
-    "bal_std",
-    "bal_trend",
-    "bal_cv",
-    "fhs_std",
-    "income_regularity",
-    "vel_mean",
     "vel_max",
-    "pct_negative_days",
     "max_drawdown",
     "runway_mean"
+  ],
+  "excluded_label_defining_features": [
+    "fhs_mean",
+    "_fhs_mean",
+    "fhs_std",
+    "bal_trend",
+    "income_regularity",
+    "pct_negative_days",
+    "vel_mean",
+    "bal_mean",
+    "bal_std",
+    "bal_cv"
   ],
   "class_names": [
     "High",
@@ -20,108 +25,216 @@
   "train_size": 800,
   "test_size": 200,
   "models": {
-    "logistic_regression": {
-      "accuracy": 0.945,
+    "majority_class": {
+      "accuracy": 0.585,
+      "accuracy_ci95": [
+        0.52,
+        0.655
+      ],
+      "macro_f1": 0.2461,
+      "macro_f1_ci95": [
+        0.2281,
+        0.2638
+      ],
       "report": {
         "High": {
-          "precision": 0.9167,
-          "recall": 0.9778,
-          "f1-score": 0.9462,
-          "support": 45.0
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 36.0
         },
         "Low": {
-          "precision": 0.9815,
-          "recall": 0.9636,
-          "f1-score": 0.9725,
-          "support": 110.0
+          "precision": 0.585,
+          "recall": 1.0,
+          "f1-score": 0.7382,
+          "support": 117.0
         },
         "Medium": {
-          "precision": 0.8864,
-          "recall": 0.8667,
-          "f1-score": 0.8764,
-          "support": 45.0
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1-score": 0.0,
+          "support": 47.0
         },
-        "accuracy": 0.945,
+        "accuracy": 0.585,
         "macro avg": {
-          "precision": 0.9282,
-          "recall": 0.936,
-          "f1-score": 0.9317,
+          "precision": 0.195,
+          "recall": 0.3333,
+          "f1-score": 0.2461,
           "support": 200.0
         },
         "weighted avg": {
-          "precision": 0.9455,
-          "recall": 0.945,
-          "f1-score": 0.945,
+          "precision": 0.3422,
+          "recall": 0.585,
+          "f1-score": 0.4318,
+          "support": 200.0
+        }
+      }
+    },
+    "threshold_rule": {
+      "accuracy": 0.66,
+      "accuracy_ci95": [
+        0.595,
+        0.725
+      ],
+      "macro_f1": 0.6454,
+      "macro_f1_ci95": [
+        0.5774,
+        0.7091
+      ],
+      "report": {
+        "High": {
+          "precision": 0.6346,
+          "recall": 0.9167,
+          "f1-score": 0.75,
+          "support": 36.0
+        },
+        "Low": {
+          "precision": 0.9487,
+          "recall": 0.6325,
+          "f1-score": 0.759,
+          "support": 117.0
+        },
+        "Medium": {
+          "precision": 0.3571,
+          "recall": 0.5319,
+          "f1-score": 0.4274,
+          "support": 47.0
+        },
+        "accuracy": 0.66,
+        "macro avg": {
+          "precision": 0.6468,
+          "recall": 0.6937,
+          "f1-score": 0.6454,
+          "support": 200.0
+        },
+        "weighted avg": {
+          "precision": 0.7532,
+          "recall": 0.66,
+          "f1-score": 0.6794,
+          "support": 200.0
+        }
+      }
+    },
+    "logistic_regression": {
+      "accuracy": 0.76,
+      "accuracy_ci95": [
+        0.7,
+        0.815
+      ],
+      "macro_f1": 0.6884,
+      "macro_f1_ci95": [
+        0.6216,
+        0.7484
+      ],
+      "report": {
+        "High": {
+          "precision": 0.7556,
+          "recall": 0.9444,
+          "f1-score": 0.8395,
+          "support": 36.0
+        },
+        "Low": {
+          "precision": 0.8189,
+          "recall": 0.8889,
+          "f1-score": 0.8525,
+          "support": 117.0
+        },
+        "Medium": {
+          "precision": 0.5,
+          "recall": 0.2979,
+          "f1-score": 0.3733,
+          "support": 47.0
+        },
+        "accuracy": 0.76,
+        "macro avg": {
+          "precision": 0.6915,
+          "recall": 0.7104,
+          "f1-score": 0.6884,
+          "support": 200.0
+        },
+        "weighted avg": {
+          "precision": 0.7326,
+          "recall": 0.76,
+          "f1-score": 0.7375,
           "support": 200.0
         }
       }
     },
     "random_forest": {
-      "accuracy": 0.965,
+      "accuracy": 0.765,
+      "accuracy_ci95": [
+        0.705,
+        0.825
+      ],
+      "macro_f1": 0.7088,
+      "macro_f1_ci95": [
+        0.6386,
+        0.7774
+      ],
       "report": {
         "High": {
-          "precision": 0.9778,
-          "recall": 0.9778,
-          "f1-score": 0.9778,
-          "support": 45.0
+          "precision": 0.7647,
+          "recall": 0.7222,
+          "f1-score": 0.7429,
+          "support": 36.0
         },
         "Low": {
-          "precision": 0.9907,
-          "recall": 0.9636,
-          "f1-score": 0.977,
-          "support": 110.0
+          "precision": 0.8655,
+          "recall": 0.8803,
+          "f1-score": 0.8729,
+          "support": 117.0
         },
         "Medium": {
-          "precision": 0.8958,
-          "recall": 0.9556,
-          "f1-score": 0.9247,
-          "support": 45.0
+          "precision": 0.5106,
+          "recall": 0.5106,
+          "f1-score": 0.5106,
+          "support": 47.0
         },
-        "accuracy": 0.965,
+        "accuracy": 0.765,
         "macro avg": {
-          "precision": 0.9548,
-          "recall": 0.9657,
-          "f1-score": 0.9598,
+          "precision": 0.7136,
+          "recall": 0.7044,
+          "f1-score": 0.7088,
           "support": 200.0
         },
         "weighted avg": {
-          "precision": 0.9664,
-          "recall": 0.965,
-          "f1-score": 0.9654,
+          "precision": 0.764,
+          "recall": 0.765,
+          "f1-score": 0.7643,
           "support": 200.0
         }
       }
     }
   },
+  "cv_5fold_customer_grouped": {
+    "logistic_regression_acc_mean": 0.772,
+    "logistic_regression_acc_std": 0.0242,
+    "logistic_regression_macro_f1_mean": 0.6715,
+    "random_forest_acc_mean": 0.781,
+    "random_forest_acc_std": 0.0282,
+    "random_forest_macro_f1_mean": 0.7073
+  },
   "confusion_matrix": [
     [
-      44,
-      0,
-      1
+      26,
+      1,
+      9
     ],
     [
       0,
-      106,
-      4
+      103,
+      14
     ],
     [
-      1,
-      1,
-      43
+      8,
+      15,
+      24
     ]
   ],
   "feature_importance": {
-    "bal_trend": 0.2401,
-    "bal_std": 0.1904,
-    "bal_mean": 0.1492,
-    "income_regularity": 0.106,
-    "vel_mean": 0.1019,
-    "runway_mean": 0.079,
-    "vel_max": 0.0498,
-    "max_drawdown": 0.047,
-    "fhs_std": 0.0202,
-    "bal_cv": 0.0163,
-    "pct_negative_days": 0.0
+    "vel_max": 0.3492,
+    "max_drawdown": 0.3287,
+    "runway_mean": 0.3221
   },
   "roc_data": {
     "High": {
@@ -129,39 +242,85 @@
         0.0,
         0.0,
         0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0065,
-        0.0065,
-        0.0323,
-        0.0452,
-        0.0516,
+        0.0122,
+        0.0122,
+        0.0183,
+        0.0183,
+        0.0244,
+        0.0244,
+        0.0366,
+        0.0366,
+        0.0427,
+        0.0427,
+        0.0488,
+        0.0488,
+        0.0549,
+        0.0549,
+        0.061,
+        0.061,
+        0.0732,
+        0.0732,
+        0.1341,
+        0.1341,
+        0.4329,
+        0.4451,
+        0.4939,
+        0.5061,
+        0.5305,
+        0.5427,
+        0.5488,
+        0.561,
+        0.5671,
+        0.5793,
+        0.5854,
+        0.5976,
+        0.622,
+        0.6524,
+        0.6585,
         1.0
       ],
       "tpr": [
         0.0,
-        0.5778,
-        0.6,
+        0.0278,
+        0.25,
+        0.25,
+        0.4722,
+        0.4722,
+        0.5556,
+        0.5556,
+        0.6111,
+        0.6111,
         0.6667,
-        0.6889,
-        0.7556,
+        0.6667,
+        0.7222,
+        0.7222,
         0.7778,
-        0.8222,
+        0.7778,
         0.8889,
-        0.9778,
-        0.9778,
+        0.8889,
+        0.9167,
+        0.9167,
+        0.9444,
+        0.9444,
+        0.9722,
+        0.9722,
+        0.9722,
+        0.9722,
+        0.9722,
+        0.9722,
+        0.9722,
+        0.9722,
+        0.9722,
+        0.9722,
+        0.9722,
+        1.0,
         1.0,
         1.0,
         1.0,
         1.0,
         1.0
       ],
-      "auc": 0.9999
+      "auc": 0.9576
     },
     "Low": {
       "fpr": [
@@ -170,132 +329,549 @@
         0.0,
         0.0,
         0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0111,
-        0.0111,
-        0.0556,
-        0.0556,
-        0.0778,
-        0.1111,
-        0.1111,
-        0.1333,
-        0.1556,
-        0.1556,
-        0.1889,
-        0.2,
-        0.2667,
+        0.012,
+        0.012,
+        0.0361,
+        0.0361,
+        0.0602,
+        0.0602,
+        0.0843,
+        0.0843,
+        0.0964,
+        0.0964,
+        0.1084,
+        0.1084,
+        0.1205,
+        0.1205,
+        0.1446,
+        0.1446,
+        0.1566,
+        0.1566,
+        0.1687,
+        0.1687,
+        0.1807,
+        0.1807,
+        0.1928,
+        0.1928,
+        0.2048,
+        0.2048,
+        0.2289,
+        0.2289,
+        0.253,
+        0.253,
+        0.2892,
+        0.2892,
+        0.3494,
+        0.3494,
+        0.3976,
+        0.3976,
+        0.494,
         1.0
       ],
       "tpr": [
         0.0,
-        0.6636,
-        0.6727,
-        0.7182,
-        0.7364,
-        0.8,
-        0.8182,
-        0.8364,
-        0.8545,
-        0.8636,
-        0.8818,
-        0.9091,
-        0.9091,
-        0.9727,
-        0.9727,
-        0.9818,
-        0.9818,
-        0.9818,
-        0.9909,
-        0.9909,
-        0.9909,
-        1.0,
-        1.0,
+        0.3077,
+        0.3162,
+        0.3504,
+        0.4359,
+        0.4359,
+        0.4786,
+        0.4786,
+        0.5385,
+        0.5385,
+        0.5726,
+        0.5726,
+        0.6154,
+        0.6154,
+        0.6325,
+        0.6325,
+        0.6667,
+        0.6667,
+        0.7009,
+        0.7009,
+        0.7436,
+        0.7436,
+        0.7863,
+        0.7863,
+        0.7949,
+        0.7949,
+        0.8205,
+        0.8205,
+        0.906,
+        0.906,
+        0.9402,
+        0.9402,
+        0.9573,
+        0.9573,
+        0.9658,
+        0.9658,
+        0.9829,
+        0.9829,
+        0.9915,
+        0.9915,
         1.0,
         1.0,
         1.0
       ],
-      "auc": 0.9964
+      "auc": 0.9224
     },
     "Medium": {
       "fpr": [
         0.0,
         0.0,
         0.0,
-        0.0,
-        0.0,
-        0.0065,
-        0.0065,
-        0.0065,
-        0.0129,
-        0.0129,
-        0.0129,
-        0.0194,
-        0.0194,
-        0.0194,
-        0.0194,
-        0.0387,
-        0.0452,
-        0.0968,
-        0.0968,
-        0.1161,
-        0.1355,
-        0.1613,
-        0.1677,
-        0.1935,
-        0.2,
-        0.2194,
-        0.2323,
-        0.2839,
-        0.3161,
-        0.3548,
-        0.3613,
+        0.0131,
+        0.0131,
+        0.0196,
+        0.0196,
+        0.0261,
+        0.0261,
+        0.0327,
+        0.0327,
+        0.0392,
+        0.0392,
+        0.0458,
+        0.0458,
+        0.0523,
+        0.0523,
+        0.0719,
+        0.0719,
+        0.098,
+        0.098,
+        0.1111,
+        0.1111,
+        0.183,
+        0.183,
+        0.2157,
+        0.2157,
+        0.2222,
+        0.2222,
+        0.2353,
+        0.2353,
+        0.2549,
+        0.2549,
+        0.3007,
+        0.3007,
+        0.3464,
+        0.3464,
+        0.3529,
+        0.3529,
+        0.366,
+        0.366,
+        0.3987,
+        0.3987,
+        0.4183,
+        0.4183,
+        0.4444,
+        0.4444,
+        0.4641,
+        0.4641,
+        0.5163,
+        0.5163,
+        0.5294,
+        0.5294,
+        0.6013,
+        0.6013,
+        0.6471,
+        0.6471,
+        0.732,
+        0.7582,
+        0.7647,
         1.0
       ],
       "tpr": [
         0.0,
-        0.3333,
-        0.4222,
-        0.4444,
-        0.5556,
-        0.5778,
-        0.6222,
-        0.6667,
-        0.6667,
-        0.7333,
-        0.8222,
-        0.8222,
-        0.8444,
-        0.8889,
-        0.9556,
-        0.9556,
-        0.9778,
-        0.9778,
-        1.0,
-        1.0,
-        1.0,
-        1.0,
-        1.0,
-        1.0,
-        1.0,
-        1.0,
-        1.0,
+        0.0213,
+        0.0638,
+        0.0638,
+        0.0851,
+        0.0851,
+        0.1702,
+        0.1702,
+        0.2553,
+        0.2553,
+        0.2979,
+        0.2979,
+        0.3191,
+        0.3191,
+        0.3617,
+        0.3617,
+        0.383,
+        0.383,
+        0.4255,
+        0.4255,
+        0.4894,
+        0.4894,
+        0.5106,
+        0.5106,
+        0.5319,
+        0.5319,
+        0.5532,
+        0.5532,
+        0.5745,
+        0.5745,
+        0.5957,
+        0.5957,
+        0.617,
+        0.617,
+        0.6596,
+        0.6596,
+        0.7021,
+        0.7021,
+        0.7234,
+        0.7234,
+        0.7447,
+        0.7447,
+        0.766,
+        0.766,
+        0.8085,
+        0.8085,
+        0.8298,
+        0.8298,
+        0.8511,
+        0.8511,
+        0.8936,
+        0.8936,
+        0.9362,
+        0.9362,
+        0.9787,
+        0.9787,
         1.0,
         1.0,
         1.0,
         1.0,
         1.0
       ],
-      "auc": 0.9917
+      "auc": 0.7829
     }
   },
+  "leakage_audit": {
+    "label_definition": "risk_tier = High (<60), Medium (60-74.99), Low (>=75) of mean rolling 180d FHS over days 0..729",
+    "same_window_leakage_detected": true,
+    "why_leaky": "Original pipeline feeds FHS formula inputs (bal_trend [40%], income_regularity [30%], vel_mean/bal_mean [20%], pct_negative_days [10%], plus fhs_std) from the same 730-day window whose FHS mean defines the label. An explicit formula threshold rule recovers 97%+ accuracy without ML.",
+    "verdict": "Original classifier reproduces a deterministic rule from its own components.",
+    "same_window_benchmark": {
+      "majority_class": {
+        "accuracy": 0.525,
+        "accuracy_ci95": [
+          0.455,
+          0.595
+        ],
+        "macro_f1": 0.2295,
+        "macro_f1_ci95": [
+          0.2085,
+          0.2487
+        ]
+      },
+      "threshold_rule": {
+        "accuracy": 0.96,
+        "accuracy_ci95": [
+          0.935,
+          0.985
+        ],
+        "macro_f1": 0.9586,
+        "macro_f1_ci95": [
+          0.9281,
+          0.984
+        ]
+      },
+      "logistic_regression": {
+        "accuracy": 0.975,
+        "accuracy_ci95": [
+          0.95,
+          0.995
+        ],
+        "macro_f1": 0.9736,
+        "macro_f1_ci95": [
+          0.9486,
+          0.9946
+        ]
+      },
+      "random_forest": {
+        "accuracy": 0.955,
+        "accuracy_ci95": [
+          0.925,
+          0.98
+        ],
+        "macro_f1": 0.9521,
+        "macro_f1_ci95": [
+          0.92,
+          0.9805
+        ]
+      }
+    },
+    "feature_audit": [
+      {
+        "feature": "bal_mean",
+        "description": "Avg daily balance (days 0..729)",
+        "leakage_role": "Direct denominator of spending_volatility (20% of FHS) + identifies segment income scale",
+        "spearman_with_fhs_mean": 0.9426
+      },
+      {
+        "feature": "bal_std",
+        "description": "Balance std dev (days 0..729)",
+        "leakage_role": "Correlates with segment drift & income scale on same window",
+        "spearman_with_fhs_mean": 0.9593
+      },
+      {
+        "feature": "bal_trend",
+        "description": "OLS balance slope (days 0..729)",
+        "leakage_role": "LABEL-DEFINING: exact input to balance_trend (40% of FHS)",
+        "spearman_with_fhs_mean": 0.9601
+      },
+      {
+        "feature": "bal_cv",
+        "description": "bal_std / |bal_mean| (days 0..729)",
+        "leakage_role": "Normalized balance volatility over same 730d target window",
+        "spearman_with_fhs_mean": 0.5664
+      },
+      {
+        "feature": "fhs_std",
+        "description": "Std of rolling 180d FHS (days 0..729)",
+        "leakage_role": "LABEL-DEFINING: computed from the exact rolling FHS series whose mean defines risk_tier",
+        "spearman_with_fhs_mean": -0.705
+      },
+      {
+        "feature": "income_regularity",
+        "description": "CV of monthly balance deltas (days 0..729)",
+        "leakage_role": "LABEL-DEFINING: exact input to income_regularity (30% of FHS)",
+        "spearman_with_fhs_mean": -0.9529
+      },
+      {
+        "feature": "vel_mean",
+        "description": "Mean |daily balance delta| (days 0..729)",
+        "leakage_role": "Proxies daily_changes std in spending_volatility (20% of FHS)",
+        "spearman_with_fhs_mean": 0.8756
+      },
+      {
+        "feature": "vel_max",
+        "description": "Max |daily balance delta| (days 0..729)",
+        "leakage_role": "Non-formula scale feature; reflects segment salary/rent size",
+        "spearman_with_fhs_mean": 0.8275
+      },
+      {
+        "feature": "pct_negative_days",
+        "description": "Fraction of days balance < 0 (days 0..729)",
+        "leakage_role": "LABEL-DEFINING: exact input to debt_ratio (10% of FHS)",
+        "spearman_with_fhs_mean": -0.0613
+      },
+      {
+        "feature": "max_drawdown",
+        "description": "Max peak-to-trough decline (days 0..729)",
+        "leakage_role": "Non-formula drawdown feature; also reflects monthly rent size",
+        "spearman_with_fhs_mean": 0.6279
+      },
+      {
+        "feature": "runway_mean",
+        "description": "bal_mean / avg daily outflow (days 0..729)",
+        "leakage_role": "Non-formula ratio; correlates strongly with bal_mean and segment scale",
+        "spearman_with_fhs_mean": 0.9539
+      }
+    ]
+  },
+  "forward_decline_task": {
+    "next_30d_fhs_decline_le_2": {
+      "train_rows": 9600,
+      "test_rows": 1200,
+      "train_customers": 800,
+      "test_customers": 200,
+      "train_t_range": [
+        180,
+        510
+      ],
+      "test_t_range": [
+        540,
+        690
+      ],
+      "positive_rate_train": 0.1401,
+      "positive_rate_test": 0.1583,
+      "models": {
+        "majority_class": {
+          "accuracy": 0.8417,
+          "accuracy_ci95": [
+            0.8167,
+            0.8658
+          ],
+          "macro_f1": 0.457,
+          "macro_f1_ci95": [
+            0.4495,
+            0.464
+          ]
+        },
+        "threshold_rule": {
+          "accuracy": 0.6508,
+          "accuracy_ci95": [
+            0.6117,
+            0.6892
+          ],
+          "macro_f1": 0.5477,
+          "macro_f1_ci95": [
+            0.5156,
+            0.581
+          ],
+          "roc_auc": 0.6401,
+          "pr_auc": 0.2937,
+          "roc_auc_ci95": [
+            0.6006,
+            0.6791
+          ]
+        },
+        "logistic_regression": {
+          "accuracy": 0.5483,
+          "accuracy_ci95": [
+            0.5083,
+            0.5867
+          ],
+          "macro_f1": 0.5109,
+          "macro_f1_ci95": [
+            0.4742,
+            0.545
+          ],
+          "roc_auc": 0.7901,
+          "pr_auc": 0.4731,
+          "roc_auc_ci95": [
+            0.7434,
+            0.8274
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.775,
+          "accuracy_ci95": [
+            0.7433,
+            0.8067
+          ],
+          "macro_f1": 0.6824,
+          "macro_f1_ci95": [
+            0.649,
+            0.713
+          ],
+          "roc_auc": 0.8457,
+          "pr_auc": 0.5675,
+          "roc_auc_ci95": [
+            0.8166,
+            0.8723
+          ]
+        }
+      },
+      "within_segment_rf_roc_auc": {
+        "Daily Wage": 0.9006,
+        "Gig/Freelance": 0.8048,
+        "Govt/PSU": 0.971,
+        "IT Salaried": 0.8037,
+        "Retirees": 0.8471,
+        "Small Business": 0.8489,
+        "Students": 0.7075,
+        "Young Professionals": 0.7485
+      }
+    },
+    "disjoint_180d_fhs_decline_le_2": {
+      "train_rows": 6400,
+      "test_rows": 1000,
+      "train_customers": 800,
+      "test_customers": 200,
+      "train_t_range": [
+        180,
+        390
+      ],
+      "test_t_range": [
+        420,
+        540
+      ],
+      "positive_rate_train": 0.2105,
+      "positive_rate_test": 0.249,
+      "models": {
+        "majority_class": {
+          "accuracy": 0.751,
+          "accuracy_ci95": [
+            0.709,
+            0.794
+          ],
+          "macro_f1": 0.4289,
+          "macro_f1_ci95": [
+            0.4149,
+            0.4426
+          ]
+        },
+        "threshold_rule": {
+          "accuracy": 0.776,
+          "accuracy_ci95": [
+            0.739,
+            0.811
+          ],
+          "macro_f1": 0.7178,
+          "macro_f1_ci95": [
+            0.6729,
+            0.7581
+          ],
+          "roc_auc": 0.8057,
+          "pr_auc": 0.6218,
+          "roc_auc_ci95": [
+            0.7619,
+            0.8479
+          ]
+        },
+        "logistic_regression": {
+          "accuracy": 0.61,
+          "accuracy_ci95": [
+            0.558,
+            0.662
+          ],
+          "macro_f1": 0.5909,
+          "macro_f1_ci95": [
+            0.538,
+            0.6401
+          ],
+          "roc_auc": 0.7186,
+          "pr_auc": 0.4666,
+          "roc_auc_ci95": [
+            0.6564,
+            0.7769
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.584,
+          "accuracy_ci95": [
+            0.533,
+            0.633
+          ],
+          "macro_f1": 0.5719,
+          "macro_f1_ci95": [
+            0.5212,
+            0.6195
+          ],
+          "roc_auc": 0.7219,
+          "pr_auc": 0.4479,
+          "roc_auc_ci95": [
+            0.6709,
+            0.7727
+          ]
+        }
+      },
+      "within_segment_rf_roc_auc": {
+        "Daily Wage": 0.8849,
+        "Gig/Freelance": 0.7602,
+        "Govt/PSU": 0.685,
+        "IT Salaried": 0.7093,
+        "Retirees": 0.5724,
+        "Small Business": 0.7371,
+        "Students": 0.7372,
+        "Young Professionals": 0.584
+      }
+    },
+    "feature_columns": [
+      "bal_mean",
+      "bal_std",
+      "bal_trend",
+      "vel_mean",
+      "vel_max",
+      "pct_neg",
+      "last30_vs_prev30",
+      "fhs_now"
+    ],
+    "honest_interpretation": "Because customer_generator.py simulates i.i.d. daily expense shocks (p=0.0027/day), there is no hidden autocorrelated financial deterioration. On strictly disjoint 180-day windows, a simple mean-reversion threshold rule (fhs_now - train_segment_mean) achieves higher ROC-AUC than ML models; on the 30-day rolling horizon, ML captures segment volatility differences and rolling-window roll-off."
+  },
   "notes": {
-    "leakage_prevention": "fhs_mean excluded from inputs because risk_tier = bucket(fhs_mean, [35, 60]). Including it would let the model trivially re-derive the threshold rule.",
-    "structural_note": "The remaining features (bal_trend, vel_mean, etc.) are decomposed components of the signal that built the FHS composite score. The model is largely learning to reconstruct a known weighted formula from its components, which is expected for a synthetic-data proof of concept."
+    "leakage_prevention": "Primary audited models train on Year-1 features predicting non-overlapping Year-2 risk_tier = bucket(FHS, [60, 75]) with direct FHS subscore inputs excluded. Legacy same-window 96.5% RF result is preserved only inside leakage_audit.",
+    "structural_note": "Even non-formula features (vel_max, max_drawdown, runway_mean) reflect synthetic segment income/expense scale (segment explains 95.1% of FHS variance). The audited risk-tier models primarily identify synthetic segment scale and prior tier."
   }
 }

@@ -1,0 +1,163 @@
+{
+  "dataset": "synthetic (seed=42, 1000 customers = 125/segment, 730 days)",
+  "sampling_config": {
+    "sampled_per_segment": 30,
+    "full_per_segment": 125,
+    "lookback_days": 45
+  },
+  "heatmap": {
+    "scalar_30c_median_s": 0.6283,
+    "scalar_125c_median_s": 2.8961,
+    "scalar_sampling_speedup": 4.61,
+    "vectorized_30c_median_s": 0.2993,
+    "vectorized_125c_median_s": 0.3557,
+    "vectorized_sampling_speedup": 1.19,
+    "vectorization_vs_scalar_30c_speedup": 2.1,
+    "fhs_mae_vs_full": 0.3287,
+    "fhs_max_abs_diff": 0.79,
+    "risk_label_agreement": "8/8",
+    "per_segment": [
+      {
+        "segment": "Daily Wage",
+        "fhs_sampled_30": 45.52,
+        "fhs_full_125": 46.31,
+        "diff": -0.79,
+        "risk_sampled": "AMBER",
+        "risk_full": "AMBER"
+      },
+      {
+        "segment": "Gig/Freelance",
+        "fhs_sampled_30": 69.52,
+        "fhs_full_125": 69.91,
+        "diff": -0.39,
+        "risk_sampled": "GREEN",
+        "risk_full": "GREEN"
+      },
+      {
+        "segment": "Govt/PSU",
+        "fhs_sampled_30": 91.73,
+        "fhs_full_125": 91.95,
+        "diff": -0.22,
+        "risk_sampled": "GREEN",
+        "risk_full": "GREEN"
+      },
+      {
+        "segment": "IT Salaried",
+        "fhs_sampled_30": 91.44,
+        "fhs_full_125": 91.25,
+        "diff": 0.19,
+        "risk_sampled": "GREEN",
+        "risk_full": "GREEN"
+      },
+      {
+        "segment": "Retirees",
+        "fhs_sampled_30": 82.25,
+        "fhs_full_125": 82.33,
+        "diff": -0.08,
+        "risk_sampled": "GREEN",
+        "risk_full": "GREEN"
+      },
+      {
+        "segment": "Small Business",
+        "fhs_sampled_30": 78.38,
+        "fhs_full_125": 78.57,
+        "diff": -0.19,
+        "risk_sampled": "GREEN",
+        "risk_full": "GREEN"
+      },
+      {
+        "segment": "Students",
+        "fhs_sampled_30": 56.85,
+        "fhs_full_125": 57.5,
+        "diff": -0.65,
+        "risk_sampled": "AMBER",
+        "risk_full": "AMBER"
+      },
+      {
+        "segment": "Young Professionals",
+        "fhs_sampled_30": 73.8,
+        "fhs_full_125": 73.92,
+        "diff": -0.12,
+        "risk_sampled": "GREEN",
+        "risk_full": "GREEN"
+      }
+    ]
+  },
+  "forecaster": {
+    "scalar_30c_45d_s": 23.239,
+    "scalar_125c_45d_s": 69.927,
+    "scalar_sampling_speedup": 3.01,
+    "vectorized_30c_45d_s": 1.079,
+    "vectorized_125c_45d_s": 1.201,
+    "vectorized_sampling_speedup": 1.11,
+    "vectorization_vs_scalar_30c_speedup": 21.53,
+    "mean_hist_fhs_mae": 0.565,
+    "mean_forecast_yhat_mae": 0.9377,
+    "max_forecast_yhat_mae": 1.7103,
+    "alert_segments_sampled": [
+      "Daily Wage"
+    ],
+    "alert_segments_full": [
+      "Daily Wage"
+    ],
+    "alerts_exact_match": true,
+    "per_segment": {
+      "Daily Wage": {
+        "hist_fhs_mae": 0.7429,
+        "forecast_yhat_mae": 1.5183,
+        "day30_sampled": 48.05,
+        "day30_full": 49.9,
+        "day30_diff": -1.85
+      },
+      "Gig/Freelance": {
+        "hist_fhs_mae": 0.5914,
+        "forecast_yhat_mae": 1.7103,
+        "day30_sampled": 75.02,
+        "day30_full": 72.73,
+        "day30_diff": 2.29
+      },
+      "Govt/PSU": {
+        "hist_fhs_mae": 0.2206,
+        "forecast_yhat_mae": 0.6623,
+        "day30_sampled": 93.76,
+        "day30_full": 94.58,
+        "day30_diff": -0.82
+      },
+      "IT Salaried": {
+        "hist_fhs_mae": 0.1833,
+        "forecast_yhat_mae": 0.1967,
+        "day30_sampled": 94.57,
+        "day30_full": 94.35,
+        "day30_diff": 0.22
+      },
+      "Retirees": {
+        "hist_fhs_mae": 0.5498,
+        "forecast_yhat_mae": 0.717,
+        "day30_sampled": 86.28,
+        "day30_full": 85.42,
+        "day30_diff": 0.86
+      },
+      "Small Business": {
+        "hist_fhs_mae": 0.4014,
+        "forecast_yhat_mae": 0.4107,
+        "day30_sampled": 79.39,
+        "day30_full": 79.81,
+        "day30_diff": -0.42
+      },
+      "Students": {
+        "hist_fhs_mae": 0.4114,
+        "forecast_yhat_mae": 0.9637,
+        "day30_sampled": 60.22,
+        "day30_full": 61.83,
+        "day30_diff": -1.61
+      },
+      "Young Professionals": {
+        "hist_fhs_mae": 1.4188,
+        "forecast_yhat_mae": 1.3227,
+        "day30_sampled": 76.86,
+        "day30_full": 78.13,
+        "day30_diff": -1.27
+      }
+    }
+  }
+}

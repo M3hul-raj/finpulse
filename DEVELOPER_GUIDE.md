@@ -41,16 +41,15 @@
   - `compute_income_regularity()` — coefficient of variation of monthly balance deltas.
   - `compute_spending_volatility()` — standard deviation of daily balance changes.
   - `compute_debt_ratio()` — percentage of days in negative balance.
-- **Risk labels**: `< 60 = RED` · `60–75 = YELLOW` · `> 75 = GREEN`.
-- **Performance**: Samples 30 customers per segment using deterministic `zlib.crc32` seeding (not random — same result every restart).
+- **Risk labels**: `< 35 = RED` · `35–59 = AMBER` · `>= 60 = GREEN` (classifier uses separate severity bands `< 60 / 60-74.99 / >= 75`).
+- **Performance**: Vectorized `compute_fhs_matrix()` + deterministic sampling (`30/125` customers via `zlib.crc32` seeding).
 
 #### `forecaster.py` — Time-Series Forecasting Engine
 - **What it does**: Forecasts FHS 30 days into the future for each segment.
-- **Algorithm**: Holt-Winters Simple Exponential Smoothing + linear trend correction.
-- **Performance optimizations**:
-  - 30 customers sampled per segment (Central Limit Theorem: statistically representative).
-  - 45-day lookback window with 180-day rolling FHS computation.
-  - Reduces total FHS calculations from ~90,000 to ~10,800 (8× speedup).
+- **Algorithm**: Production fits `ExponentialSmoothing(trend="add", seasonal=None)` (Holt's linear trend) on a 45-day lookback; full-history rolling-origin seasonal Holt-Winters (`seasonal_periods=30`) is evaluated in `ml_pipeline.py`.
+- **Measured performance (`src/benchmark.py`)**:
+  - Scalar customer sampling (`30` vs `125` customers/segment): `4.61×` heatmap speedup (`2.90s -> 0.63s`), `3.01×` forecast speedup (`69.93s -> 23.24s`).
+  - Vectorized `compute_fhs_matrix()`: `21.53×` forecast speedup over scalar 30c (`23.24s -> 1.08s` for 30c; `1.20s` for full 125c) with `0.00` numerical diff.
 - **Output per segment**: `{ds, yhat, yhat_lower, yhat_upper}` — point forecast + 95% confidence interval.
 - **Fallback**: If Holt-Winters fitting fails, uses last-value repeat.
 
@@ -129,18 +128,10 @@
 
 ### Tests: `tests/`
 
-#### `test_core.py` — 22 Unit Tests
+See [docs/EVALUATION.md](docs/EVALUATION.md) and [docs/RESUME_FACTS.md](docs/RESUME_FACTS.md) for audited ML metrics, rolling-origin forecast backtests, and verified claim-to-command mappings.
 
-| Module | Tests | What's Verified |
-|---|---|---|
-| `customer_generator` | 4 | Data shape (730K×4), column names, all 8 segments present, 125 customers each |
-| `fhs_calculator` | 6 | FHS range [0,100], negative balance penalized, risk label thresholds, segment output completeness, sub-score columns, sub-score variation across segments |
-| `anomaly` | 5 | Returns list, flags CRITICAL for low FHS, doesn't flag healthy segments, worst-case/day-30 horizon alignment, alert action matches severity |
-| `ml_pipeline` | 4 | Features CSV exists, `fhs_mean` excluded from model inputs, model_results JSON valid, RF accuracy in healthy range |
-| `forecaster` | 1 | Confidence band grows with forecast horizon |
-| `api_server` | 2 | `/api/segments` returns 8 segments, `/api/model-metrics` returns valid JSON |
-
-- **Self-contained**: Session-scoped fixture generates data internally — no CSV dependency.
+#### Automated Pytest Suite (`tests/test_core.py`, `tests/test_llm_failover.py`, `tests/test_api_reliability.py`, `tests/test_evaluation.py`)
+- **Self-contained**: Core tests generate deterministic synthetic data internally (`seed=42`); LLM tests mock external Gemini/Groq SDK calls.
 - **Run**: `pytest tests/ -v` from project root.
 
 ---
@@ -176,51 +167,19 @@ index.html loads → app.js init()
 
 ---
 
-## Part 3: Resume/CV Guide
+## Part 3: Verified Resume/CV Reference
 
-### Project Title
-**FinPulse — AI-Powered Segment Risk Intelligence Dashboard**
-
----
-
-### One-liner (for project list)
-> Built a predictive risk intelligence dashboard that forecasts financial distress across 8 banking segments 30 days ahead, using Holt-Winters time-series modeling and multi-provider GenAI to generate intervention plans.
-
----
-
-### Detailed Resume Bullets (Pick 4-6)
-
-#### For Software Engineering / Full-Stack roles:
-- Architected and shipped a **full-stack risk intelligence dashboard** (Python/Flask backend, vanilla JS/Chart.js frontend) deployed on Render, processing **730K synthetic transaction records** across 1,000 customers in 8 segments.
-- Designed a **non-blocking API architecture** using HTTP 202 polling and thread-safe caching to handle compute-heavy forecasting workloads (~3 min cold start) without blocking the frontend or failing cloud health checks.
-- Implemented a **dual-theme design system** with 30+ CSS custom properties, responsive breakpoints, and glassmorphism effects — delivering a production-grade UI without any CSS framework.
-
-#### For Data Science / ML roles:
-- Developed a **composite Financial Health Score (FHS)** combining 4 statistical indicators (balance trend, income regularity, spending volatility, debt ratio) with domain-weighted aggregation to classify customer risk across 8 retail banking segments.
-- Built a **30-day forecasting pipeline** using Holt-Winters Exponential Smoothing with linear trend correction, achieving 8× speedup over naive approaches through deterministic sampling (CLT-based, 30 customers/segment) and rolling-window computation.
-- Engineered an **early warning anomaly detection system** that flags segments where the 95% confidence lower bound crosses the critical threshold within 14 days, enabling proactive intervention.
-
-#### For AI/GenAI roles:
-- Integrated a **multi-provider GenAI pipeline** (Google Gemini 3.5 → Groq GPT OSS 120B → Gemini Latest → Groq LTS → curated fallback) with automatic failover, generating actionable intervention recommendations for at-risk customer segments with zero single-point-of-failure risk.
-- Designed structured **prompt engineering** for banking risk analysis, constraining LLM output to 1–2 sentence professional recommendations with temperature 0.4 for deterministic outputs.
-
-#### For Product / Impact-focused roles:
-- Built a **macroeconomic stress-testing simulator** with an interactive 0–50% expense shock slider, enabling risk teams to model inflation spikes and housing crises in real-time and observe portfolio resilience instantly.
-- Delivered a dashboard that shifts operations from **reactive recovery to proactive intervention**, providing a 30-day early warning window to deploy micro-loans, EMI restructuring, or savings sweeps before customer default.
-
----
+For strictly verified, reproducible resume statements backed by executable commands, see **[docs/RESUME_FACTS.md](docs/RESUME_FACTS.md)** and **[docs/EVALUATION.md](docs/EVALUATION.md)**.
 
 ### Skills/Technologies to List
-`Python`, `Flask`, `NumPy`, `Pandas`, `statsmodels`, `Chart.js`, `HTML5/CSS3`, `JavaScript (ES6+)`, `Google Gemini API`, `Groq LPU API`, `GPT OSS 120B`, `Llama 3.1 8B`, `REST APIs`, `Gunicorn`, `Render`, `Time-Series Forecasting`, `Exponential Smoothing`, `Anomaly Detection`, `Prompt Engineering`, `Thread-Safe Caching`, `CI/CD`
+`Python`, `Flask`, `NumPy`, `Pandas`, `scikit-learn`, `statsmodels`, `Chart.js`, `HTML5/CSS3`, `JavaScript (ES6+)`, `Google Gemini API`, `Groq LPU API`, `REST APIs`, `Gunicorn`, `Docker`, `Render`, `Time-Series Backtesting`, `Exponential Smoothing`, `Anomaly Detection`, `Thread-Safe Caching`, `pytest`, `GitHub Actions`
 
 ---
 
 ## Part 4: Interview Talking Points
 
-These are the "why" stories behind the technical choices — interviewers love these:
-
-1. **"Why Holt-Winters instead of Prophet/LSTM?"** — Holt-Winters is interpretable (critical for regulated banking), lightweight (no heavy ML dependencies), and produces native confidence intervals. It avoids the "black box" problem of neural networks in financial compliance settings.
-2. **"Why a quality-first cross-provider GenAI waterfall?"** — Free-tier APIs have rate limits and individual models undergo deprecation cycles. By prioritizing the most powerful models first (Gemini 3.5 & Groq 120B) with automatic failover to dynamic aliases and LTS models, the system never fails and always yields maximum reasoning quality.
-3. **"Why HTTP 202 polling instead of WebSockets?"** — The forecasting computation takes 1–3 minutes on cold start. WebSockets would require persistent connections and complicate deployment on Render's free tier. 202 polling is stateless, cloud-native, and the frontend handles it transparently.
-4. **"Why deterministic sampling with zlib.crc32?"** — To ensure the same segment always samples the same customers across API calls and server restarts. This prevents "jitter" in the heatmap when users compare scenarios — a subtle UX detail that makes stress-testing reliable.
-5. **"Why vanilla JS instead of React?"** — For a single-page dashboard with no routing, React adds build complexity and bundle size without proportional benefit. Vanilla JS with a clear state object keeps the codebase auditable and the frontend zero-dependency.
+1. **"Why audit the risk classifier for leakage?"** — Because `risk_tier` was derived from FHS while feeding FHS's components over the same 730-day window, a threshold rule got `96.0%` accuracy. Separating Year-1 → Year-2 on disjoint customers and removing direct formula inputs dropped RF to `76.5%` (with `78.1%` 5-fold CV), and evaluating a genuinely forward 30-day decline task (`AUC 0.846`) vs disjoint 180-day decline (`mean-reversion rule AUC 0.806 > RF 0.722`) exposed the limits of i.i.d. synthetic shocks.
+2. **"How did rolling-origin forecasting change your view?"** — Replacing a cherry-picked 36d/9d split with 23 expanding origins over 551 days revealed that the production 45-day unseasonal Holt model loses `0/8` to Naive (`-31.3%` MAE) because monthly salary/rent events create a 30-day cycle, whereas seasonal Holt-Winters (`m=30`, damped) beats Naive `8/8` (`+25.6%` MAE).
+3. **"How did you eliminate Render cold-start pain?"** — Precomputing baseline `shock=0` heatmap/forecasts into `model_results/baseline_cache.json` (`23.1 KB`), lazy-loading the `27 MB` CSV only for `shock > 0`, adding `/health`, and vectorizing `compute_fhs_matrix()` (`21.53×` forecast speedup: `23.24s -> 1.08s`).
+4. **"Why deterministic sampling with `zlib.crc32`?"** — Ensures identical customer subsets per segment across restarts and shock scenarios, yielding `4.61×` scalar heatmap / `3.01×` scalar forecast speedup with `0.33` / `0.94` FHS MAE vs all 125 customers.
+5. **"How is LLM failover tested without secrets?"** — Mocked SDK tests verify Gemini-to-Groq failover, explicit client timeouts (`10s`), placeholder key rejection, input validation, and deterministic fallback responses.

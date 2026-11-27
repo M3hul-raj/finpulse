@@ -801,117 +801,125 @@ function renderModelTab(tab, data, container) {
 
   if (tab === 'classification') {
     const cr = data.classification_report || {};
-    const lr = cr.models?.logistic_regression || { accuracy: 0.95 };
-    const rf = cr.models?.random_forest || { accuracy: 0.95 };
-    const lr_macro = lr.report?.['macro avg'] || {};
-    const rf_macro = rf.report?.['macro avg'] || {};
+    const models = cr.models || {};
+    const maj = models.majority_class || {};
+    const rule = models.threshold_rule || {};
+    const lr = models.logistic_regression || {};
+    const rf = models.random_forest || {};
+    const fwd = cr.forward_decline_task?.next_30d_fhs_decline_le_2 || {};
+    const fwdModels = fwd.models || {};
+    const audit = cr.leakage_audit || {};
 
-    const lr_f1 = lr_macro['f1-score'] ?? 0.9317;
-    const rf_f1 = rf_macro['f1-score'] ?? 0.9598;
-    const bestF1Model = lr_f1 >= rf_f1 ? 'logistic_regression' : 'random_forest';
+    const fmtPct = (v) => (typeof v === 'number' ? `${(v * 100).toFixed(1)}%` : '—');
+    const fmtNum = (v) => (typeof v === 'number' ? v.toFixed(3) : '—');
+    const fmtCI = (ci) => (Array.isArray(ci) && ci.length === 2 ? `[${(ci[0] * 100).toFixed(1)}%, ${(ci[1] * 100).toFixed(1)}%]` : '—');
 
-    const fiRaw = cr.feature_importance || {
-      'bal_trend': 0.2401,
-      'bal_std': 0.1904,
-      'bal_mean': 0.1492,
-      'income_regularity': 0.1060,
-      'vel_mean': 0.1019
-    };
+    const fiRaw = cr.feature_importance || {};
     const fi = Object.entries(fiRaw).sort((a, b) => b[1] - a[1]);
 
     container.innerHTML = `
+      <div style="margin-bottom:12px;font-size:12px;color:var(--text-muted);">
+        Audited Task: <strong style="color:var(--text-primary);">Year-1 → Year-2 Non-Overlapping Risk Tier</strong> (customer-grouped, direct FHS formula features excluded).
+      </div>
       <table class="metrics-table">
         <thead>
           <tr>
-            <th>Model</th>
-            <th>Accuracy</th>
-            <th>Macro Precision</th>
-            <th>Macro Recall</th>
-            <th>Macro F1 (Primary Metric)</th>
+            <th>Model / Baseline</th>
+            <th>Accuracy (95% CI)</th>
+            <th>Macro F1</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Logistic Regression (Baseline) ${bestF1Model === 'logistic_regression' ? '<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(34,197,94,0.15);color:var(--risk-green);margin-left:6px;border:1px solid rgba(34,197,94,0.3);">Best F1</span>' : ''}</td>
-            <td class="mono">${(lr.accuracy * 100).toFixed(1)}%</td>
-            <td class="mono">${(lr_macro['precision'] || 0.9282).toFixed(3)}</td>
-            <td class="mono">${(lr_macro['recall'] || 0.9360).toFixed(3)}</td>
-            <td class="mono font-semibold" style="${bestF1Model === 'logistic_regression' ? 'color:var(--risk-green);' : ''}">${lr_f1.toFixed(3)}</td>
+            <td>Majority Class Baseline</td>
+            <td class="mono">${fmtPct(maj.accuracy)} <span style="color:var(--text-muted);font-size:11px;">${fmtCI(maj.accuracy_ci95)}</span></td>
+            <td class="mono">${fmtNum(maj.macro_f1)}</td>
           </tr>
           <tr>
-            <td>Random Forest Classifier ${bestF1Model === 'random_forest' ? '<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(34,197,94,0.15);color:var(--risk-green);margin-left:6px;border:1px solid rgba(34,197,94,0.3);">Best F1</span>' : ''}</td>
-            <td class="mono">${(rf.accuracy * 100).toFixed(1)}%</td>
-            <td class="mono">${(rf_macro['precision'] || 0.9548).toFixed(3)}</td>
-            <td class="mono">${(rf_macro['recall'] || 0.9657).toFixed(3)}</td>
-            <td class="mono font-semibold" style="${bestF1Model === 'random_forest' ? 'color:var(--risk-green);' : ''}">${rf_f1.toFixed(3)}</td>
+            <td>Year-1 FHS Threshold Rule</td>
+            <td class="mono">${fmtPct(rule.accuracy)} <span style="color:var(--text-muted);font-size:11px;">${fmtCI(rule.accuracy_ci95)}</span></td>
+            <td class="mono">${fmtNum(rule.macro_f1)}</td>
+          </tr>
+          <tr>
+            <td>Logistic Regression (Non-Formula)</td>
+            <td class="mono">${fmtPct(lr.accuracy)} <span style="color:var(--text-muted);font-size:11px;">${fmtCI(lr.accuracy_ci95)}</span></td>
+            <td class="mono">${fmtNum(lr.macro_f1)}</td>
+          </tr>
+          <tr>
+            <td>Random Forest (Non-Formula)</td>
+            <td class="mono">${fmtPct(rf.accuracy)} <span style="color:var(--text-muted);font-size:11px;">${fmtCI(rf.accuracy_ci95)}</span></td>
+            <td class="mono">${fmtNum(rf.macro_f1)}</td>
           </tr>
         </tbody>
       </table>
+      ${fi.length > 0 ? `
       <div style="margin-top:16px;">
-        <div style="margin-bottom:8px;font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Feature Importance (Mean Decrease Impurity)</div>
-        ${fi.slice(0, 5).map(([name, imp]) => `
+        <div style="margin-bottom:8px;font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;">Non-Formula Feature Importance</div>
+        ${fi.map(([name, imp]) => `
           <div class="feature-bar-wrap" style="margin-top:6px;display:flex;align-items:center;gap:12px;">
             <span style="width:140px;font-size:12px;color:var(--text-primary);font-family:'JetBrains Mono',monospace;">${name}</span>
             <div style="flex:1;background:var(--bg-card);border:1px solid var(--border-subtle);height:8px;border-radius:4px;overflow:hidden;">
-              <div class="feature-bar" style="width:${Math.min(100, Math.round(imp * 100 * 3.5))}%;height:100%;background:var(--accent-purple);"></div>
+              <div class="feature-bar" style="width:${Math.min(100, Math.round(imp * 100))}%;height:100%;background:var(--accent-purple);"></div>
             </div>
             <span class="mono" style="font-size:12px;width:50px;text-align:right;">${(imp * 100).toFixed(1)}%</span>
           </div>
         `).join('')}
-      </div>
-      <div style="margin-top:12px;font-size:11px;color:var(--text-muted);">
-        * Data leakage prevention: <code>fhs_mean</code> is excluded from classifier inputs.
+      </div>` : ''}
+      <div style="margin-top:14px;padding:10px 12px;background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:11px;color:var(--text-muted);line-height:1.5;">
+        <strong>Leakage Audit:</strong> ${audit.verdict || 'Same-window FHS-component classifier reproduces a deterministic rule.'}
+        ${fwdModels.random_forest ? `<br><strong>Forward Next-30d Decline (&le;-2 FHS, unseen customers &amp; future time):</strong> Majority Acc ${fmtPct(fwdModels.majority_class?.accuracy)} | Mean-Reversion Rule AUC ${fmtNum(fwdModels.threshold_rule?.roc_auc)} | LogReg AUC ${fmtNum(fwdModels.logistic_regression?.roc_auc)} | RF AUC ${fmtNum(fwdModels.random_forest?.roc_auc)}.` : ''}
       </div>
     `;
   } else if (tab === 'forecasting') {
     const fm = data.forecast_metrics || {};
-    const comp = fm.per_segment || fm.comparison || {};
+    const comp = fm.per_segment || {};
+    const summary = fm.summary || {};
     const segments = Object.keys(comp);
-    const hwWins = segments.filter(seg => comp[seg].holt_winters.rmse < comp[seg].naive.rmse).length;
-    const avgImprovement = segments.length > 0
-      ? (segments.reduce((sum, seg) => {
-          const naiveR = comp[seg].naive.rmse;
-          const hwR = comp[seg].holt_winters.rmse;
-          return sum + ((naiveR - hwR) / naiveR) * 100;
-        }, 0) / segments.length).toFixed(1)
-      : (fm.summary?.avg_rmse_improvement_pct || 3.8).toFixed(1);
 
     container.innerHTML = `
-      <div style="display:flex;gap:16px;margin-bottom:12px;font-size:12px;color:var(--text-muted);">
-        <div>Evaluated on 80/20 train/test split across 8 segments</div>
-        <div>Holt-Winters beats naive on <strong style="color:var(--text-primary);">${hwWins}/${segments.length} segments</strong></div>
-        <div>Avg RMSE improvement: <strong style="color:var(--risk-green);">${avgImprovement}%</strong></div>
+      <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:12px;font-size:12px;color:var(--text-muted);">
+        <div>${summary.evaluation_method || 'Rolling-origin expanding backtest (30-day horizon)'}</div>
+        <div>Holt (45d Prod) beats Naive: <strong style="color:var(--text-primary);">${summary.holt_prod_45d_wins_vs_naive || '0/8'}</strong></div>
+        <div>HW (Seasonal m=30) beats Naive: <strong style="color:var(--risk-green);">${summary.hw_m30_wins_vs_naive || '—'}</strong></div>
       </div>
       <table class="metrics-table">
         <thead>
           <tr>
             <th>Segment</th>
-            <th>Naive RMSE</th>
-            <th>SMA (7d) RMSE</th>
-            <th>Holt-Winters RMSE</th>
-            <th>Best Model</th>
+            <th>Naive MAE</th>
+            <th>S-Naive (30d) MAE</th>
+            <th>Holt (45d Prod) MAE</th>
+            <th>HW (m=30) MAE</th>
+            <th>HW (m=30) MAPE</th>
+            <th>Best (MAE)</th>
           </tr>
         </thead>
         <tbody>
           ${segments.map(seg => {
             const s = comp[seg];
-            const naiveR = s.naive.rmse;
-            const smaR = s.sma.rmse;
-            const hwR = s.holt_winters.rmse;
-            const minR = Math.min(naiveR, smaR, hwR);
-            const best = minR === hwR ? 'Holt-Winters' : minR === smaR ? 'SMA' : 'Naive';
+            const nMae = s.naive?.mae ?? 0;
+            const snMae = s.seasonal_naive_30?.mae ?? 0;
+            const h45Mae = s.holt_prod_45d?.mae ?? 0;
+            const hw30 = s.holt_winters_m30 || s.holt_winters || {};
+            const hwMae = hw30.mae ?? 0;
+            const hwMape = hw30.mape ?? 0;
+            const minM = Math.min(nMae, snMae, h45Mae, hwMae);
+            const best = minM === hwMae ? 'HW (m=30)' : minM === snMae ? 'S-Naive (30d)' : minM === nMae ? 'Naive' : 'Holt (45d)';
             return `
               <tr>
                 <td>${seg}</td>
-                <td class="mono">${naiveR.toFixed(3)}</td>
-                <td class="mono">${smaR.toFixed(3)}</td>
-                <td class="mono ${hwR === minR ? 'font-semibold' : ''}" style="${hwR === minR ? 'color:var(--risk-green);' : ''}">${hwR.toFixed(3)}</td>
+                <td class="mono">${nMae.toFixed(3)}</td>
+                <td class="mono">${snMae.toFixed(3)}</td>
+                <td class="mono">${h45Mae.toFixed(3)}</td>
+                <td class="mono ${hwMae === minM ? 'font-semibold' : ''}" style="${hwMae === minM ? 'color:var(--risk-green);' : ''}">${hwMae.toFixed(3)}</td>
+                <td class="mono">${hwMape.toFixed(2)}%</td>
                 <td><span style="font-size:11px;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.06);border:1px solid var(--border-subtle);">${best}</span></td>
               </tr>
             `;
           }).join('')}
         </tbody>
       </table>
+      ${summary.honest_finding ? `<div style="margin-top:10px;font-size:11px;color:var(--text-muted);line-height:1.5;">${summary.honest_finding}</div>` : ''}
     `;
   } else if (tab === 'clustering') {
     const cl = data.clustering || {};

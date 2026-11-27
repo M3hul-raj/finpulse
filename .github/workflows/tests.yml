@@ -1,4 +1,4 @@
-name: Python Tests
+name: Python Tests & CI
 
 on:
   push:
@@ -27,6 +27,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Run tests
+    - name: Check no API keys in tracked files
+      run: |
+        if git grep -n -E "(AIza[0-9A-Za-z_-]{20,}|gsk_[0-9A-Za-z]{20,}|sk-[0-9A-Za-z]{20,})" -- . ":!*.webm"; then
+          echo "ERROR: Potential secret key detected in tracked files!"
+          exit 1
+        fi
+
+    - name: Run pytest suite
       run: |
         pytest tests/ -v
+
+    - name: Build Docker image
+      run: |
+        docker build -t finpulse:ci .
