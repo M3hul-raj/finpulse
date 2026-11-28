@@ -40,9 +40,10 @@
       </div>
 
       <div class="nav-meta">
-        <span class="meta-tag">1,000 Customers</span>
+        <span class="meta-tag" style="background:rgba(251,191,36,0.12);border-color:rgba(251,191,36,0.35);color:var(--risk-amber);">Synthetic Data · Seed 42</span>
+        <span class="meta-tag">1,000 Simulated Customers</span>
         <span class="meta-tag">8 Segments</span>
-        <span class="meta-tag">30-Day Forecast Horizon</span>
+        <span class="meta-tag">30-Day Horizon</span>
         <div class="live-pill">
           <span class="live-dot"></span>
           <span>Risk Engine Active</span>
@@ -86,9 +87,9 @@
         </div>
         <div class="kpi-grid" id="kpiGrid">
           <div class="kpi-card purple">
-            <div class="kpi-label">Total Customers Monitored</div>
+            <div class="kpi-label">Simulated Customers</div>
             <div class="kpi-value" data-target="1000" id="kpiTotal">0</div>
-            <div class="kpi-delta positive">↑ +12 this week</div>
+            <div class="kpi-delta neutral">Synthetic dataset (Seed 42)</div>
           </div>
           <div class="kpi-card red">
             <div class="kpi-label">Critical Segments</div>
@@ -153,7 +154,7 @@
         <div class="section-header-flex">
           <div>
             <h2>30-Day Forecast Studio</h2>
-            <div class="section-subtext">Holt-Winters exponential smoothing with horizon-scaled uncertainty bands (SE × √t).</div>
+            <div class="section-subtext">Seasonal damped Holt-Winters (m=30, 180-day window) with horizon-scaled uncertainty bands (SE × √t). See Validation tab for rolling-origin win/loss breakdown (loses at 1–7d short horizons on some segments).</div>
           </div>
           <div class="forecast-controls">
             <select class="segment-select" id="segmentSelect" aria-label="Select segment for forecast">
@@ -230,7 +231,7 @@
 
       <!-- ═══ FOOTER ═══ -->
       <footer class="footer">
-        <div>FinPulse — NatWest Segment Risk Intelligence</div>
+        <div>FinPulse — NatWest Segment Risk Intelligence (Synthetic Simulation, Seed 42 — Not Real Customer Data)</div>
         <div class="footer-tech">
           <span class="footer-tag">Python</span>
           <span class="footer-tag">Flask</span>

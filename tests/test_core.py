@@ -52,13 +52,46 @@ def test_segment_customer_counts(customer_data):
         assert cust_count == 125, f"{seg} has {cust_count} customers, expected 125"
 
 
+def test_generator_is_deterministic_across_repeated_calls():
+    """generate_all_customers(seed=42) must be repeatable regardless of prior RNG calls."""
+    np.random.seed(999)
+    _ = np.random.random(10)
+    df1 = generate_all_customers(seed=42)
+    df2 = generate_all_customers(seed=42)
+    assert df1.equals(df2)
+    df3 = generate_all_customers(seed=99)
+    assert not df1.equals(df3)
+
+
 # ── fhs_calculator tests ──────────────────────────────────────────────────────
 
 def test_fhs_range():
     """FHS score must always be between 0 and 100."""
-    balances = pd.Series(np.random.normal(50000, 10000, 730))
+    rng = np.random.default_rng(42)
+    balances = pd.Series(rng.normal(50000, 10000, 730))
     score = compute_fhs(balances)
     assert 0 <= score <= 100, f"FHS out of range: {score}"
+
+
+def test_fhs_handles_short_and_61_to_90_day_windows_without_nan():
+    """compute_fhs must not return NaN on 61-90 day windows with a single monthly delta."""
+    dates = pd.date_range("2024-01-01", periods=75, freq="D")
+    balances = pd.Series(np.linspace(20000, 25000, 75), index=dates)
+    score = compute_fhs(balances)
+    assert not np.isnan(score)
+    assert 0 <= score <= 100
+
+
+def test_vectorized_fhs_matches_scalar_compute_fhs(customer_data):
+    """Vectorized compute_fhs_matrix must match scalar compute_fhs exactly."""
+    from fhs_calculator import compute_fhs_matrix
+    sample = customer_data[customer_data["customer_id"] <= 20].pivot(
+        index="date", columns="customer_id", values="balance"
+    )
+    sample.index = pd.to_datetime(sample.index)
+    vec_vals, *_ = compute_fhs_matrix(sample.iloc[:180])
+    sca_vals = np.array([compute_fhs(sample[c].iloc[:180]) for c in sample.columns])
+    assert np.max(np.abs(vec_vals - sca_vals)) == 0.0
 
 
 def test_fhs_negative_balance_penalized():
@@ -239,7 +272,7 @@ def test_model_results_json_valid():
 
 
 def test_rf_accuracy_in_healthy_range():
-    """RF accuracy should be 75-97% — too high suggests leakage, too low suggests bad features."""
+    """Audited RF accuracy should exceed majority baseline without exceeding 0.97 leakage bound."""
     import json
     path = os.path.join(os.path.dirname(__file__), "..", "model_results", "classification_report.json")
     if not os.path.exists(path):
@@ -247,25 +280,44 @@ def test_rf_accuracy_in_healthy_range():
     with open(path) as f:
         data = json.load(f)
     rf_acc = data["models"]["random_forest"]["accuracy"]
-    assert 0.70 <= rf_acc <= 0.97, f"RF accuracy {rf_acc} outside healthy range [0.70, 0.97]"
+    maj_acc = data["models"]["majority_class"]["accuracy"]
+    assert maj_acc < rf_acc <= 0.97, f"Audited RF accuracy {rf_acc} unexpected vs majority {maj_acc}"
 
 
-# ── Forecaster confidence band test ──────────────────────────────────────────
+# ── Forecaster confidence band & seasonal model tests ────────────────────────
+
+def test_live_forecaster_uses_seasonal_holt_winters_m30():
+    """Live forecaster must fit seasonal damped Holt-Winters (m=30) on >= 60-day series."""
+    from forecaster import LOOKBACK_DAYS, SEASONAL_PERIODS, forecast_segment_with_model
+
+    assert LOOKBACK_DAYS >= 2 * SEASONAL_PERIODS
+    assert SEASONAL_PERIODS == 30
+    rng = np.random.default_rng(42)
+    t = np.arange(LOOKBACK_DAYS)
+    seasonal_signal = 70.0 + 3.0 * np.sin(2 * np.pi * t / 30.0) + rng.normal(0, 0.2, LOOKBACK_DAYS)
+    series = pd.Series(seasonal_signal, index=pd.date_range("2024-01-01", periods=LOOKBACK_DAYS, freq="D"))
+    fc, model_used = forecast_segment_with_model(series)
+    assert model_used == "holt_winters_m30"
+    assert len(fc) == 30
+    assert (fc["yhat_upper"] >= fc["yhat_lower"]).all()
+
 
 def test_confidence_band_grows_with_horizon():
-    """Confidence interval must widen over the forecast horizon."""
+    """Confidence interval must widen over the forecast horizon for both seasonal HW and fallback."""
     from forecaster import forecast_segment
-    series = pd.Series(
-        np.random.normal(70, 2, 45),
-        index=pd.date_range("2024-01-01", periods=45, freq="D")
-    )
-    fc = forecast_segment(series)
-    day1_width = fc["yhat_upper"].iloc[0] - fc["yhat_lower"].iloc[0]
-    day30_width = fc["yhat_upper"].iloc[-1] - fc["yhat_lower"].iloc[-1]
-    assert day30_width > day1_width, (
-        f"Day 30 band width ({day30_width:.2f}) should be wider than "
-        f"day 1 ({day1_width:.2f}) — confidence must grow with horizon"
-    )
+
+    rng = np.random.default_rng(42)
+    for n_days in (180, 45):
+        series = pd.Series(
+            rng.normal(70, 2, n_days),
+            index=pd.date_range("2024-01-01", periods=n_days, freq="D"),
+        )
+        fc = forecast_segment(series)
+        day1_width = fc["yhat_upper"].iloc[0] - fc["yhat_lower"].iloc[0]
+        day30_width = fc["yhat_upper"].iloc[-1] - fc["yhat_lower"].iloc[-1]
+        assert day30_width > day1_width, (
+            f"n={n_days}: Day 30 band width ({day30_width:.2f}) should be wider than day 1 ({day1_width:.2f})"
+        )
 
 
 # ── API endpoint tests ───────────────────────────────────────────────────────
