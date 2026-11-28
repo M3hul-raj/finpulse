@@ -154,7 +154,7 @@
         <div class="section-header-flex">
           <div>
             <h2>30-Day Forecast Studio</h2>
-            <div class="section-subtext">Holt linear exponential smoothing (45-day window) with horizon-scaled uncertainty bands (SE × √t). See Validation tab for seasonal rolling-origin backtests.</div>
+            <div class="section-subtext">Seasonal damped Holt-Winters (m=30, 180-day window) with horizon-scaled uncertainty bands (SE × √t). See Validation tab for rolling-origin win/loss breakdown (loses at 1–7d short horizons on some segments).</div>
           </div>
           <div class="forecast-controls">
             <select class="segment-select" id="segmentSelect" aria-label="Select segment for forecast">

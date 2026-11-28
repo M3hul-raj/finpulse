@@ -64,14 +64,23 @@ def test_leakage_audit_and_forward_decline_task_present():
 def test_forecast_metrics_has_rolling_origin_and_seasonal_naive():
     fm = _load_json("forecast_metrics.json")
     assert "Rolling-origin" in fm["summary"]["evaluation_method"]
+    assert fm["summary"]["live_production_model"] == "hw_prod_180d_m30"
     for seg, metrics in fm["per_segment"].items():
-        for model in ("naive", "seasonal_naive_7", "seasonal_naive_30", "holt_prod_45d", "holt_winters_m30"):
+        for model in (
+            "naive",
+            "seasonal_naive_7",
+            "seasonal_naive_30",
+            "holt_legacy_45d",
+            "hw_prod_180d_m30",
+            "holt_winters_m30",
+        ):
             assert model in metrics, f"{model} missing for {seg}"
             assert "mae" in metrics[model] and "mape" in metrics[model] and "rmse" in metrics[model]
     wins_losses = fm["summary"]["wins_and_losses"]
-    assert "holt_prod_45d_vs_naive" in wins_losses
-    assert "hw_m30_vs_naive" in wins_losses
-    assert "hw_m30_vs_snaive_30" in wins_losses
+    assert "holt_legacy_45d_vs_naive" in wins_losses
+    assert "hw_prod_180d_vs_naive" in wins_losses
+    assert "hw_prod_180d_vs_snaive_30" in wins_losses
+    assert "hw_prod_180d_short_horizon_h1_7_losses_vs_naive" in wins_losses
 
 
 def test_sampling_benchmark_json_has_measured_numbers():

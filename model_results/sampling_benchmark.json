@@ -3,16 +3,16 @@
   "sampling_config": {
     "sampled_per_segment": 30,
     "full_per_segment": 125,
-    "lookback_days": 45
+    "lookback_days": 180
   },
   "heatmap": {
-    "scalar_30c_median_s": 0.6283,
-    "scalar_125c_median_s": 2.8961,
-    "scalar_sampling_speedup": 4.61,
-    "vectorized_30c_median_s": 0.2993,
-    "vectorized_125c_median_s": 0.3557,
-    "vectorized_sampling_speedup": 1.19,
-    "vectorization_vs_scalar_30c_speedup": 2.1,
+    "scalar_30c_median_s": 0.9466,
+    "scalar_125c_median_s": 2.994,
+    "scalar_sampling_speedup": 3.16,
+    "vectorized_30c_median_s": 0.2776,
+    "vectorized_125c_median_s": 0.2837,
+    "vectorized_sampling_speedup": 1.02,
+    "vectorization_vs_scalar_30c_speedup": 3.41,
     "fhs_mae_vs_full": 0.3287,
     "fhs_max_abs_diff": 0.79,
     "risk_label_agreement": "8/8",
@@ -84,16 +84,17 @@
     ]
   },
   "forecaster": {
-    "scalar_30c_45d_s": 23.239,
-    "scalar_125c_45d_s": 69.927,
-    "scalar_sampling_speedup": 3.01,
-    "vectorized_30c_45d_s": 1.079,
-    "vectorized_125c_45d_s": 1.201,
-    "vectorized_sampling_speedup": 1.11,
-    "vectorization_vs_scalar_30c_speedup": 21.53,
-    "mean_hist_fhs_mae": 0.565,
-    "mean_forecast_yhat_mae": 0.9377,
-    "max_forecast_yhat_mae": 1.7103,
+    "lookback_days": 180,
+    "scalar_30c_s": 87.698,
+    "scalar_125c_s": 676.587,
+    "scalar_sampling_speedup": 7.71,
+    "vectorized_30c_s": 4.983,
+    "vectorized_125c_s": 5.747,
+    "vectorized_sampling_speedup": 1.15,
+    "vectorization_vs_scalar_30c_speedup": 17.6,
+    "mean_hist_fhs_mae": 0.5621,
+    "mean_forecast_yhat_mae": 0.6458,
+    "max_forecast_yhat_mae": 1.4103,
     "alert_segments_sampled": [
       "Daily Wage"
     ],
@@ -103,60 +104,60 @@
     "alerts_exact_match": true,
     "per_segment": {
       "Daily Wage": {
-        "hist_fhs_mae": 0.7429,
-        "forecast_yhat_mae": 1.5183,
-        "day30_sampled": 48.05,
-        "day30_full": 49.9,
-        "day30_diff": -1.85
+        "hist_fhs_mae": 0.627,
+        "forecast_yhat_mae": 1.2597,
+        "day30_sampled": 49.01,
+        "day30_full": 50.22,
+        "day30_diff": -1.21
       },
       "Gig/Freelance": {
-        "hist_fhs_mae": 0.5914,
-        "forecast_yhat_mae": 1.7103,
-        "day30_sampled": 75.02,
-        "day30_full": 72.73,
-        "day30_diff": 2.29
+        "hist_fhs_mae": 1.2587,
+        "forecast_yhat_mae": 1.4103,
+        "day30_sampled": 73.79,
+        "day30_full": 72.12,
+        "day30_diff": 1.67
       },
       "Govt/PSU": {
-        "hist_fhs_mae": 0.2206,
-        "forecast_yhat_mae": 0.6623,
-        "day30_sampled": 93.76,
-        "day30_full": 94.58,
-        "day30_diff": -0.82
+        "hist_fhs_mae": 0.1578,
+        "forecast_yhat_mae": 0.2893,
+        "day30_sampled": 93.46,
+        "day30_full": 93.78,
+        "day30_diff": -0.32
       },
       "IT Salaried": {
-        "hist_fhs_mae": 0.1833,
-        "forecast_yhat_mae": 0.1967,
-        "day30_sampled": 94.57,
-        "day30_full": 94.35,
-        "day30_diff": 0.22
+        "hist_fhs_mae": 0.168,
+        "forecast_yhat_mae": 0.1657,
+        "day30_sampled": 93.48,
+        "day30_full": 93.36,
+        "day30_diff": 0.12
       },
       "Retirees": {
-        "hist_fhs_mae": 0.5498,
-        "forecast_yhat_mae": 0.717,
-        "day30_sampled": 86.28,
-        "day30_full": 85.42,
-        "day30_diff": 0.86
+        "hist_fhs_mae": 0.395,
+        "forecast_yhat_mae": 0.8137,
+        "day30_sampled": 84.8,
+        "day30_full": 83.82,
+        "day30_diff": 0.98
       },
       "Small Business": {
-        "hist_fhs_mae": 0.4014,
-        "forecast_yhat_mae": 0.4107,
-        "day30_sampled": 79.39,
-        "day30_full": 79.81,
-        "day30_diff": -0.42
+        "hist_fhs_mae": 0.5333,
+        "forecast_yhat_mae": 0.1243,
+        "day30_sampled": 79.21,
+        "day30_full": 79.18,
+        "day30_diff": 0.03
       },
       "Students": {
-        "hist_fhs_mae": 0.4114,
-        "forecast_yhat_mae": 0.9637,
-        "day30_sampled": 60.22,
-        "day30_full": 61.83,
-        "day30_diff": -1.61
+        "hist_fhs_mae": 0.5946,
+        "forecast_yhat_mae": 0.069,
+        "day30_sampled": 59.98,
+        "day30_full": 60.03,
+        "day30_diff": -0.05
       },
       "Young Professionals": {
-        "hist_fhs_mae": 1.4188,
-        "forecast_yhat_mae": 1.3227,
-        "day30_sampled": 76.86,
-        "day30_full": 78.13,
-        "day30_diff": -1.27
+        "hist_fhs_mae": 0.7626,
+        "forecast_yhat_mae": 1.0347,
+        "day30_sampled": 75.49,
+        "day30_full": 76.86,
+        "day30_diff": -1.37
       }
     }
   }

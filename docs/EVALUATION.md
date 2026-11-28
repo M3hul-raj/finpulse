@@ -65,7 +65,7 @@ Evaluating the original 11 features on the same 730-day window (80/20 stratified
 | Logistic Regression | `76.0%` `[70.0%, 81.5%]` | `0.688` `[0.622, 0.748]` | `77.2%` (±2.4%) / `0.672` |
 | Random Forest | `76.5%` `[70.5%, 82.5%]` | `0.709` `[0.639, 0.777]` | `78.1%` (±2.8%) / `0.707` |
 
-**Interpretation:** Even after temporal separation and dropping direct FHS formula inputs, `vel_max`, `max_drawdown`, and `runway_mean` still identify each customer's synthetic segment (`eta^2 = 0.9566` of FHS variance is explained by segment design parameters). Note why Year-1 FHS Threshold Rule drops to `66.0%`: growing balances lower `spending_volatility` over time, shifting borderline customers upward in Year 2.
+**Interpretation:** Even after temporal separation and dropping direct FHS formula inputs, `vel_max`, `max_drawdown`, and `runway_mean` still identify each customer's synthetic segment (`eta^2 = 0.9566` of FHS variance is explained by segment design parameters). Year-1 FHS Threshold Rule drops to `66.0%` because growing balances lower `spending_volatility` over time, shifting borderline customers upward in Year 2.
 
 ### 2.4 Genuine Forward-Looking Task: Predicting Future FHS Decline (`<= -2.0` Points)
 - **Split:** Strictly disjoint customers (`800` train / `200` test) **and** strictly future time checkpoints (`train t <= 510`, `test t in [540, 690]` for 30-day decline; `train t <= 390`, `test t in [420, 540]` for strictly non-overlapping 180-day decline). CIs computed via 1,000 **customer-cluster bootstrap** resamples.
@@ -93,50 +93,51 @@ Evaluating the original 11 features on the same 730-day window (80/20 stratified
 
 ## 3. Rolling-Origin Forecast Backtest
 
-Evaluated on the full **551-day** daily FHS series per segment across **23 expanding forecast origins** (`min_train = 180d`, `step = 15d`, `horizon = 30d`, `690` forecast points/segment).
+Evaluated on the full **551-day** daily FHS series per segment across **23 expanding forecast origins** (`min_train = 180d`, `step = 15d`, `horizon = 30d`, `690` forecast points/segment). Live `/api/forecast` now runs **seasonal damped Holt-Winters (`m=30`, `180d` lookback)** (`hw_prod_180d_m30`).
 
 ### 3.1 30-Day Horizon (`h = 1..30`) Mean Error Across All 8 Segments
 
 | Model | Mean MAE | Mean MAPE | Beats Naive (30d MAE) | Beats S-Naive 30d (30d MAE) |
 |---|---|---|---|---|
-| **Holt-Winters (`seasonal_periods=30`, damped, expanding)** | **`0.583`** | **`0.85%`** | **`8/8` (`+25.6%`)** | **`8/8`** |
+| **Holt-Winters (`m=30`, damped, expanding)** | **`0.583`** | **`0.85%`** | **`8/8` (`+25.6%`)** | **`8/8`** |
+| **Live Production: Holt-Winters (`180d` window, `m=30`, damped)** | **`0.630`** | **`0.90%`** | **`8/8` (`+20.3%`)** | **`6/8`** |
 | Seasonal-Naive (`m=30`, monthly cycle) | `0.734` | `1.06%` | `4/8` | — |
 | Naive (last observation persistence) | `0.801` | `1.14%` | — | `4/8` |
 | Holt (unseasonal, expanding) | `0.852` | `1.21%` | `0/8` | `4/8` |
 | 7-day SMA | `0.947` | `1.33%` | `1/8` | `2/8` |
 | Seasonal-Naive (`m=7`, weekly) | `1.034` | `1.45%` | `0/8` | `1/8` |
-| **Holt (`Prod 45d`, unseasonal `trend="add"`)** | **`1.060`** | **`1.51%`** | **`0/8` (`-31.3%`)** | **`2/8`** |
+| Legacy Holt (`45d`, unseasonal `trend="add"`) | `1.060` | `1.51%` | `0/8` (`-31.3%`) | `2/8` |
 
 ### 3.2 Per-Segment 30-Day Horizon MAE / MAPE
 
-| Segment | Naive MAE (MAPE) | S-Naive 30d MAE (MAPE) | Holt Prod 45d MAE (MAPE) | HW m=30 MAE (MAPE) |
-|---|---|---|---|---|
-| IT Salaried | `0.514` (`0.56%`) | `0.410` (`0.45%`) | `0.672` (`0.73%`) | **`0.358` (`0.39%`)** |
-| Gig/Freelance | `0.798` (`1.13%`) | `1.028` (`1.45%`) | `0.848` (`1.20%`) | **`0.718` (`1.02%`)** |
-| Students | `1.162` (`2.02%`) | `1.093` (`1.90%`) | `1.584` (`2.75%`) | **`0.911` (`1.58%`)** |
-| Small Business | `0.772` (`0.98%`) | `0.958` (`1.21%`) | `0.865` (`1.09%`) | **`0.621` (`0.78%`)** |
-| Govt/PSU | `0.379` (`0.41%`) | `0.329` (`0.36%`) | `0.494` (`0.54%`) | **`0.256` (`0.28%`)** |
-| Retirees | `1.090` (`1.34%`) | `0.640` (`0.78%`) | `1.554` (`1.90%`) | **`0.583` (`0.71%`)** |
-| Daily Wage | `0.543` (`1.10%`) | `0.644` (`1.31%`) | `0.808` (`1.64%`) | **`0.516` (`1.05%`)** |
-| Young Professionals | `1.152` (`1.57%`) | `0.768` (`1.04%`) | `1.652` (`2.25%`) | **`0.703` (`0.96%`)** |
+| Segment | Naive MAE (MAPE) | S-Naive 30d MAE (MAPE) | Legacy Holt 45d MAE | Live HW 180d `m=30` MAE (MAPE) | Expanding HW `m=30` MAE (MAPE) |
+|---|---|---|---|---|---|
+| IT Salaried | `0.514` (`0.56%`) | `0.410` (`0.45%`) | `0.672` (`0.73%`) | `0.394` (`0.43%`) | **`0.358` (`0.39%`)** |
+| Gig/Freelance | `0.798` (`1.13%`) | `1.028` (`1.45%`) | `0.848` (`1.20%`) | `0.738` (`1.05%`) | **`0.718` (`1.02%`)** |
+| Students | `1.162` (`2.02%`) | `1.093` (`1.90%`) | `1.584` (`2.75%`) | `0.985` (`1.71%`) | **`0.911` (`1.58%`)** |
+| Small Business | `0.772` (`0.98%`) | `0.958` (`1.21%`) | `0.865` (`1.09%`) | `0.658` (`0.83%`) | **`0.621` (`0.78%`)** |
+| Govt/PSU | `0.379` (`0.41%`) | `0.329` (`0.36%`) | `0.494` (`0.54%`) | `0.299` (`0.32%`) | **`0.256` (`0.28%`)** |
+| Retirees | `1.090` (`1.34%`) | `0.640` (`0.78%`) | `1.554` (`1.90%`) | `0.700` (`0.85%`) | **`0.583` (`0.71%`)** |
+| Daily Wage | `0.543` (`1.10%`) | `0.644` (`1.31%`) | `0.808` (`1.64%`) | **`0.468` (`0.95%`)** | `0.516` (`1.05%`) |
+| Young Professionals | `1.152` (`1.57%`) | `0.768` (`1.04%`) | `1.652` (`2.25%`) | `0.798` (`1.08%`) | **`0.703` (`0.96%`)** |
 
-### 3.3 Where It Wins and Loses
-- **Where the production 45-day unseasonal model loses (`0/8` vs Naive, `-31.3%` MAE):** `src/forecaster.py` sets `LOOKBACK_DAYS=45` and `seasonal=None` (Holt's linear trend). Because salaries arrive on day 1 and rent/EMI leave on day 2, the FHS series oscillates on a ~30-day cycle; fitting an undamped linear trend to 45 days extrapolates recent monthly sawtooth slope linearly across 30 days.
-- **Where seasonal Holt-Winters (`m=30`, damped, expanding) wins (`8/8` vs Naive & `8/8` vs Seasonal-Naive 30d at `h=1..30`):** Captures the monthly salary/rent periodicity across all 8 segments (`+25.6%` average MAE improvement over Naive).
-- **Where seasonal Holt-Winters (`m=30`) still loses at short horizons (`h=1..7`):** On 3 of 8 segments — `Students` (`0.525` vs Naive `0.495`), `Govt/PSU` (`0.206` vs `0.190`), and `Daily Wage` (`0.260` vs `0.237`) — Naive persistence has lower 1-to-7 day MAE because short-term daily FHS changes are dominated by random noise rather than immediate drift.
+### 3.3 Where Live Seasonal Holt-Winters (`180d`, `m=30`) Wins and Loses
+- **Where it wins (`8/8` vs Naive at `h=1..30`, `+20.3%` MAE; `6/8` vs 30d Seasonal-Naive):** Captures the monthly day-1 salary / day-2 rent cycle across all segments, replacing the legacy 45-day unseasonal Holt model (which lost `0/8` vs Naive at `-31.3%` MAE).
+- **Where it loses at 30d vs 30d Seasonal-Naive (`2/8` segments):** On `Retirees` (`0.700` vs `0.640`) and `Young Professionals` (`0.798` vs `0.768`), restricting the live model to a 180-day window gives slightly higher 30d MAE than repeating the last 30 days (full expanding history wins `8/8` over Seasonal-Naive).
+- **Where it loses at short horizons (`h=1..7`, `4/8` segments vs Naive):** Over days 1–7, Naive persistence achieves lower MAE on **`IT Salaried`** (`0.241` vs `0.292`), **`Govt/PSU`** (`0.190` vs `0.238`), **`Retirees`** (`0.503` vs `0.528`), and **`Young Professionals`** (`0.573` vs `0.591`) because short-term FHS movements are dominated by random daily noise rather than the monthly cycle.
 
 ---
 
-## 4. Customer-Sampling Speedup & Accuracy Impact
+## 4. Customer-Sampling Speedup & Accuracy Impact (`180d` Production Window)
 
 Measured via `python src/benchmark.py` (`30` sampled vs `125` full customers per segment, deterministic `zlib.crc32` selection):
 
 | Workload | Scalar 125c | Scalar 30c | Scalar Sampling Speedup | Vectorized 30c (125c) | Accuracy Impact (`30c` vs `125c`) |
 |---|---|---|---|---|---|
-| Heatmap (`compute_segment_fhs`) | `2.896s` | `0.628s` | **`4.61×`** | `0.299s` (`0.356s`) | Mean FHS MAE **`0.33`** pts, Max **`0.79`** pts (`Daily Wage`), Risk-tier agreement **`8/8`** |
-| Forecaster (`forecast_all_segments`, 45d) | `69.927s` | `23.239s` | **`3.01×`** | `1.079s` (`1.201s`) | Hist FHS MAE **`0.57`** pts, Forecast MAE **`0.94`** pts (Max **`1.71`** on `Gig/Freelance`), Alert agreement **`1/1`** (`Daily Wage`) |
+| Heatmap (`compute_segment_fhs`) | `2.994s` | `0.947s` | **`3.16×`** | `0.278s` (`0.284s`) | Mean FHS MAE **`0.33`** pts, Max **`0.79`** pts (`Daily Wage`), Risk-tier agreement **`8/8`** |
+| Forecaster (`forecast_all_segments`, `180d`, `m=30`) | `676.59s` | `87.70s` | **`7.71×`** | `4.983s` (`5.747s`) | Hist FHS MAE **`0.56`** pts, Forecast MAE **`0.65`** pts (Max **`1.41`** on `Gig/Freelance`), Alert agreement **`1/1`** (`Daily Wage`) |
 
-**Key Engineering Finding:** The old `forecaster.py` docstring claimed an *"8× speedup"* based solely on theoretical call counts (`90,000 -> 10,800` across `125->30` customers and `90->45` days). Actual measured customer-sampling runtime speedup is **`4.61×`** (heatmap) and **`3.01×`** (45-day forecasting). Vectorizing `compute_fhs_matrix()` across customer columns gives a further **`21.53×`** speedup (`23.24s -> 1.08s` for `30c`, and `1.20s` even for all `125c`) with `0.00` numerical discrepancy vs scalar `compute_fhs()`.
+**Key Engineering Finding:** On the `180d` production lookback, sampling `30` vs `125` customers yields a real **`7.71×`** scalar speedup on forecasting (`676.59s -> 87.70s`) and **`3.16×`** on heatmap (`2.99s -> 0.95s`). Vectorizing `compute_fhs_matrix()` across customer columns gives a further **`17.60×`** speedup (`87.70s -> 4.98s` for `30c`; `5.75s` for all `125c`) with `0.00` numerical parity diff, so once vectorized, sampling only saves `1.15×` (`0.76s`).
 
 ---
 

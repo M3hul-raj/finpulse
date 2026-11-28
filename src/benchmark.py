@@ -166,11 +166,12 @@ def run_sampling_benchmark(df: pd.DataFrame, repeats: int = 3, save: bool = True
             ],
         },
         "forecaster": {
-            "scalar_30c_45d_s": round(float(dt_fc_sca_30), 3),
-            "scalar_125c_45d_s": round(float(dt_fc_sca_125), 3),
+            "lookback_days": LOOKBACK_DAYS,
+            "scalar_30c_s": round(float(dt_fc_sca_30), 3),
+            "scalar_125c_s": round(float(dt_fc_sca_125), 3),
             "scalar_sampling_speedup": round(float(dt_fc_sca_125 / dt_fc_sca_30), 2),
-            "vectorized_30c_45d_s": round(float(dt_fc_vec_30), 3),
-            "vectorized_125c_45d_s": round(float(dt_fc_vec_125), 3),
+            "vectorized_30c_s": round(float(dt_fc_vec_30), 3),
+            "vectorized_125c_s": round(float(dt_fc_vec_125), 3),
             "vectorized_sampling_speedup": round(float(dt_fc_vec_125 / dt_fc_vec_30), 2),
             "vectorization_vs_scalar_30c_speedup": round(float(dt_fc_sca_30 / dt_fc_vec_30), 2),
             "mean_hist_fhs_mae": round(float(np.mean(hist_maes)), 4),
@@ -196,8 +197,8 @@ def run_sampling_benchmark(df: pd.DataFrame, repeats: int = 3, save: bool = True
         f"MAE={report['heatmap']['fhs_mae_vs_full']} pts, agree={report['heatmap']['risk_label_agreement']}"
     )
     print(
-        f"  Forecast:  scalar 125c={report['forecaster']['scalar_125c_45d_s']}s vs 30c={report['forecaster']['scalar_30c_45d_s']}s "
-        f"({report['forecaster']['scalar_sampling_speedup']}x); vectorized 30c={report['forecaster']['vectorized_30c_45d_s']}s; "
+        f"  Forecast ({LOOKBACK_DAYS}d): scalar 125c={report['forecaster']['scalar_125c_s']}s vs 30c={report['forecaster']['scalar_30c_s']}s "
+        f"({report['forecaster']['scalar_sampling_speedup']}x); vectorized 30c={report['forecaster']['vectorized_30c_s']}s; "
         f"mean fc MAE={report['forecaster']['mean_forecast_yhat_mae']} pts, alerts match={report['forecaster']['alerts_exact_match']}"
     )
     return report

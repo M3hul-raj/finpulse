@@ -879,8 +879,8 @@ function renderModelTab(tab, data, container) {
     container.innerHTML = `
       <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:12px;font-size:12px;color:var(--text-muted);">
         <div>${summary.evaluation_method || 'Rolling-origin expanding backtest (30-day horizon)'}</div>
-        <div>Holt (45d Prod) beats Naive: <strong style="color:var(--text-primary);">${summary.holt_prod_45d_wins_vs_naive || '0/8'}</strong></div>
-        <div>HW (Seasonal m=30) beats Naive: <strong style="color:var(--risk-green);">${summary.hw_m30_wins_vs_naive || '—'}</strong></div>
+        <div>Live HW (180d, m=30) beats Naive: <strong style="color:var(--risk-green);">${summary.hw_prod_180d_wins_vs_naive || '—'}</strong></div>
+        <div>Legacy 45d Holt beat Naive: <strong style="color:var(--text-primary);">${summary.holt_legacy_45d_wins_vs_naive || '0/8'}</strong></div>
       </div>
       <table class="metrics-table">
         <thead>
@@ -888,9 +888,9 @@ function renderModelTab(tab, data, container) {
             <th>Segment</th>
             <th>Naive MAE</th>
             <th>S-Naive (30d) MAE</th>
-            <th>Holt (45d Prod) MAE</th>
-            <th>HW (m=30) MAE</th>
-            <th>HW (m=30) MAPE</th>
+            <th>Legacy Holt (45d) MAE</th>
+            <th>Live HW (180d, m=30) MAE</th>
+            <th>Live HW MAPE</th>
             <th>Best (MAE)</th>
           </tr>
         </thead>
@@ -899,12 +899,12 @@ function renderModelTab(tab, data, container) {
             const s = comp[seg];
             const nMae = s.naive?.mae ?? 0;
             const snMae = s.seasonal_naive_30?.mae ?? 0;
-            const h45Mae = s.holt_prod_45d?.mae ?? 0;
-            const hw30 = s.holt_winters_m30 || s.holt_winters || {};
-            const hwMae = hw30.mae ?? 0;
-            const hwMape = hw30.mape ?? 0;
+            const h45Mae = s.holt_legacy_45d?.mae ?? s.holt_prod_45d?.mae ?? 0;
+            const hwProd = s.hw_prod_180d_m30 || s.holt_winters || {};
+            const hwMae = hwProd.mae ?? 0;
+            const hwMape = hwProd.mape ?? 0;
             const minM = Math.min(nMae, snMae, h45Mae, hwMae);
-            const best = minM === hwMae ? 'HW (m=30)' : minM === snMae ? 'S-Naive (30d)' : minM === nMae ? 'Naive' : 'Holt (45d)';
+            const best = minM === hwMae ? 'HW Live (m=30)' : minM === snMae ? 'S-Naive (30d)' : minM === nMae ? 'Naive' : 'Holt (45d)';
             return `
               <tr>
                 <td>${seg}</td>

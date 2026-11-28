@@ -22,8 +22,8 @@
           ┌────────────▼┐ ┌───▼────┐ ┌▼─────┐ ┌▼──────────────┐
           │ Vectorized  │ │Forecast│ │Anomaly│ │ LLM Explainer │
           │ FHS Engine  │ │ Engine │ │Detect.│ │Gemini ⇄ Groq  │
-          │ (math/stats)│ │(Holt/  │ │       │ │ + timeouts    │
-          │             │ │  HW)   │ │       │ │ + fallback    │
+          │ (math/stats)│ │(HW m=30│ │       │ │ + timeouts    │
+          │             │ │ 180d)  │ │       │ │ + fallback    │
           └──────┬──────┘ └───┬────┘ └┬─────┘ └┬──────────────┘
                  │            │       │        │
           ┌──────▼────────────▼───────▼────────▼──┐
@@ -41,7 +41,7 @@
 
 ## Quick Start & One-Command Evaluation Reproduction
 
-**Prerequisites:** Python 3.10+ (CI uses Python 3.14)
+**Prerequisites:** Python 3.14 (matches Render's default Python 3.14 runtime for 2026 deployments)
 
 ```bash
 # 1. Virtual environment & dependencies
@@ -87,17 +87,18 @@ Full methodology, feature-by-feature leakage audit, confidence intervals, and pe
 
 ### 2. Rolling-Origin Forecast Backtest (`forecast_metrics.json`)
 Evaluated across **23 expanding forecast origins** (`horizon = 30d`, `551`-day FHS series):
-- **Production 45-day unseasonal Holt (`trend="add", seasonal=None`):** Loses to Naive on **`0/8`** segments (`-31.3%` MAE; mean MAE `1.060` vs Naive `0.801`) and beats 30-day Seasonal-Naive on `2/8` segments, because synthetic salary/rent cashflows on days 1–2 create a 30-day sawtooth cycle that linear extrapolation overshoots.
-- **Full-history Seasonal Holt-Winters (`seasonal_periods=30`, damped trend):** Beats Naive on **`8/8`** segments (`+25.6%` MAE; mean MAE `0.583`, mean MAPE `0.85%`) and Seasonal-Naive (30d) on **`8/8`** segments at the 30-day horizon — while losing to Naive at short `1–7` day horizons on `3/8` segments (`Students`, `Govt/PSU`, `Daily Wage`).
+- **Live Production Model — Seasonal Damped Holt-Winters (`180d` window, `m=30`):** Beats Naive on **`8/8`** segments (`+20.3%` MAE; mean MAE `0.630`, mean MAPE `0.90%`) and beats 30-day Seasonal-Naive on **`6/8`** segments (losing at 30d to Seasonal-Naive on `Retirees` and `Young Professionals`). **Where it loses:** at short **`1–7` day horizons (`h=1..7`)**, Naive persistence beats live HW-180d on **`4/8`** segments (`IT Salaried`, `Govt/PSU`, `Retirees`, `Young Professionals`) where daily noise dominates seasonal drift.
+- **Expanding-History Seasonal Holt-Winters (`m=30`, damped):** Beats Naive `8/8` (`+25.6%` MAE; mean MAE `0.583`, `0.85%` MAPE) and 30d Seasonal-Naive `8/8`.
+- **Legacy 45-day unseasonal Holt (`trend="add", seasonal=None`):** Lost `0/8` vs Naive (`-31.3%` MAE) because day-1 salary / day-2 rent cashflows induce a 30-day cycle that linear trend overshoots.
 
 ### 3. Customer Sampling & Vectorization (`sampling_benchmark.json`)
-Measured comparing `30` sampled vs `125` full customers/segment:
-- **Heatmap:** Scalar sampling gives **`4.61×`** speedup (`2.896s -> 0.628s`, FHS MAE `0.33` pts, `8/8` tier match). Vectorizing drops 30c heatmap to `0.299s` (`0.356s` for all 125c).
-- **Forecasting (45d):** Scalar sampling gives **`3.01×`** speedup (`69.93s -> 23.24s`, forecast MAE `0.94` pts, `1/1` alert match). Vectorizing FHS across customers yields an additional **`21.53×`** speedup (`23.24s -> 1.08s` for 30c; `1.20s` for all 125c) with `0.00` numerical parity diff.
+Measured on the live `180d` configuration comparing `30` sampled vs `125` full customers/segment:
+- **Heatmap:** Scalar sampling gives **`3.16×`** speedup (`2.994s -> 0.947s`, FHS MAE `0.33` pts, `8/8` tier match). Vectorizing drops 30c heatmap to `0.278s` (`0.284s` for all 125c).
+- **Forecasting (`180d`, `m=30`):** Scalar sampling gives **`7.71×`** speedup (`676.59s -> 87.70s`, forecast MAE `0.65` pts, `1/1` alert match). Vectorizing FHS across customers yields an additional **`17.60×`** speedup (`87.70s -> 4.98s` for 30c; `5.75s` for all 125c) with `0.00` numerical parity diff.
 
 ### 4. Cold-Start & Reliability Engineering
-- **Instant Cold Start:** Baseline (`shock=0`) heatmap and forecasts hydrate immediately from precomputed `model_results/baseline_cache.json` (`23.1 KB`) without loading the `27 MB` CSV at startup.
-- **Lazy Loading & Health Check:** `data/historical.csv` is loaded on demand only when stress-testing (`shock > 0`); `/health` and `/api/health` respond immediately.
+- **Instant Cold Start:** Baseline (`shock=0`) heatmap and forecasts hydrate immediately from precomputed `model_results/baseline_cache.json` (`54.6 KB`) without loading the `27.6 MB` CSV at startup.
+- **Lazy Loading & Health Check:** `data/historical.csv` (`*.csv` gitignored; deterministically generated in ~`5.1s` from `seed=42` on Render/Docker if absent) loads on demand only for `shock > 0`; `/health` and `/api/health` respond immediately.
 - **LLM Failover & Safety:** Multi-provider failover (`Gemini -> Groq -> Gemini alias -> Groq LTS -> curated fallback`) with explicit timeouts (`10s` default via `LLM_TIMEOUT_SECONDS`), placeholder-key filtering, strict query validation (`400` on invalid `shock`, `404` on unknown `segment`), and zero hardcoded API keys.
 
 ---
@@ -106,7 +107,7 @@ Measured comparing `30` sampled vs `125` full customers/segment:
 
 1. **Synthetic Data Ceiling:** Customer profiles are parameterized by segment constants with i.i.d. daily expense shocks; real banking risk depends on unobserved life events, credit utilization, and macroeconomic regime shifts.
 2. **Segment-Scale Signature:** Even after excluding direct FHS formula inputs, `vel_max`, `max_drawdown`, and `runway_mean` identify segment income scale (`eta^2 = 0.957`).
-3. **Production vs Seasonal Forecaster Trade-Off:** Live `/api/forecast` retains the 45-day unseasonal Holt configuration to preserve deterministic baseline alert calibration (`Daily Wage CRITICAL`), whereas rolling-origin seasonal Holt-Winters (`m=30`) requires `>= 60` days of history.
+3. **Short-Horizon Forecast Trade-Off:** Seasonal Holt-Winters (`m=30`, `180d`) excels at 30-day monthly cycle forecasting (`8/8` vs Naive) but loses to Naive persistence at short `1–7` day horizons on `4/8` segments (`IT Salaried`, `Govt/PSU`, `Retirees`, `Young Professionals`).
 4. **Overdraft Proxy:** Models a single checking balance trajectory rather than multi-product liabilities (`debt_ratio` proxies negative checking balance frequency).
 
 ---

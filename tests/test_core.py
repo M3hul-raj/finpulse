@@ -284,22 +284,40 @@ def test_rf_accuracy_in_healthy_range():
     assert maj_acc < rf_acc <= 0.97, f"Audited RF accuracy {rf_acc} unexpected vs majority {maj_acc}"
 
 
-# ── Forecaster confidence band test ──────────────────────────────────────────
+# ── Forecaster confidence band & seasonal model tests ────────────────────────
+
+def test_live_forecaster_uses_seasonal_holt_winters_m30():
+    """Live forecaster must fit seasonal damped Holt-Winters (m=30) on >= 60-day series."""
+    from forecaster import LOOKBACK_DAYS, SEASONAL_PERIODS, forecast_segment_with_model
+
+    assert LOOKBACK_DAYS >= 2 * SEASONAL_PERIODS
+    assert SEASONAL_PERIODS == 30
+    rng = np.random.default_rng(42)
+    t = np.arange(LOOKBACK_DAYS)
+    seasonal_signal = 70.0 + 3.0 * np.sin(2 * np.pi * t / 30.0) + rng.normal(0, 0.2, LOOKBACK_DAYS)
+    series = pd.Series(seasonal_signal, index=pd.date_range("2024-01-01", periods=LOOKBACK_DAYS, freq="D"))
+    fc, model_used = forecast_segment_with_model(series)
+    assert model_used == "holt_winters_m30"
+    assert len(fc) == 30
+    assert (fc["yhat_upper"] >= fc["yhat_lower"]).all()
+
 
 def test_confidence_band_grows_with_horizon():
-    """Confidence interval must widen over the forecast horizon."""
+    """Confidence interval must widen over the forecast horizon for both seasonal HW and fallback."""
     from forecaster import forecast_segment
-    series = pd.Series(
-        np.random.normal(70, 2, 45),
-        index=pd.date_range("2024-01-01", periods=45, freq="D")
-    )
-    fc = forecast_segment(series)
-    day1_width = fc["yhat_upper"].iloc[0] - fc["yhat_lower"].iloc[0]
-    day30_width = fc["yhat_upper"].iloc[-1] - fc["yhat_lower"].iloc[-1]
-    assert day30_width > day1_width, (
-        f"Day 30 band width ({day30_width:.2f}) should be wider than "
-        f"day 1 ({day1_width:.2f}) — confidence must grow with horizon"
-    )
+
+    rng = np.random.default_rng(42)
+    for n_days in (180, 45):
+        series = pd.Series(
+            rng.normal(70, 2, n_days),
+            index=pd.date_range("2024-01-01", periods=n_days, freq="D"),
+        )
+        fc = forecast_segment(series)
+        day1_width = fc["yhat_upper"].iloc[0] - fc["yhat_lower"].iloc[0]
+        day30_width = fc["yhat_upper"].iloc[-1] - fc["yhat_lower"].iloc[-1]
+        assert day30_width > day1_width, (
+            f"n={n_days}: Day 30 band width ({day30_width:.2f}) should be wider than day 1 ({day1_width:.2f})"
+        )
 
 
 # ── API endpoint tests ───────────────────────────────────────────────────────

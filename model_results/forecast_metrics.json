@@ -21,7 +21,7 @@
         "mae": 0.5866,
         "mape": 0.64
       },
-      "holt_prod_45d": {
+      "holt_legacy_45d": {
         "rmse": 0.8363,
         "mae": 0.6718,
         "mape": 0.73
@@ -30,6 +30,11 @@
         "rmse": 0.687,
         "mae": 0.5269,
         "mape": 0.58
+      },
+      "hw_prod_180d_m30": {
+        "rmse": 0.5891,
+        "mae": 0.3936,
+        "mape": 0.43
       },
       "holt_winters_m30": {
         "rmse": 0.5478,
@@ -42,9 +47,9 @@
         "mape": 0.64
       },
       "holt_winters": {
-        "rmse": 0.5478,
-        "mae": 0.3578,
-        "mape": 0.39
+        "rmse": 0.5891,
+        "mae": 0.3936,
+        "mape": 0.43
       }
     },
     "Gig/Freelance": {
@@ -68,7 +73,7 @@
         "mae": 0.9977,
         "mape": 1.41
       },
-      "holt_prod_45d": {
+      "holt_legacy_45d": {
         "rmse": 1.0882,
         "mae": 0.8478,
         "mape": 1.2
@@ -77,6 +82,11 @@
         "rmse": 1.1525,
         "mae": 0.8485,
         "mape": 1.21
+      },
+      "hw_prod_180d_m30": {
+        "rmse": 1.0167,
+        "mae": 0.7382,
+        "mape": 1.05
       },
       "holt_winters_m30": {
         "rmse": 1.0008,
@@ -89,9 +99,9 @@
         "mape": 1.41
       },
       "holt_winters": {
-        "rmse": 1.0008,
-        "mae": 0.7178,
-        "mape": 1.02
+        "rmse": 1.0167,
+        "mae": 0.7382,
+        "mape": 1.05
       }
     },
     "Students": {
@@ -115,7 +125,7 @@
         "mae": 1.307,
         "mape": 2.27
       },
-      "holt_prod_45d": {
+      "holt_legacy_45d": {
         "rmse": 1.9732,
         "mae": 1.5839,
         "mape": 2.75
@@ -124,6 +134,11 @@
         "rmse": 1.5932,
         "mae": 1.2336,
         "mape": 2.15
+      },
+      "hw_prod_180d_m30": {
+        "rmse": 1.3388,
+        "mae": 0.9848,
+        "mape": 1.71
       },
       "holt_winters_m30": {
         "rmse": 1.2968,
@@ -136,9 +151,9 @@
         "mape": 2.27
       },
       "holt_winters": {
-        "rmse": 1.2968,
-        "mae": 0.9112,
-        "mape": 1.58
+        "rmse": 1.3388,
+        "mae": 0.9848,
+        "mape": 1.71
       }
     },
     "Small Business": {
@@ -162,7 +177,7 @@
         "mae": 0.99,
         "mape": 1.25
       },
-      "holt_prod_45d": {
+      "holt_legacy_45d": {
         "rmse": 1.098,
         "mae": 0.8653,
         "mape": 1.09
@@ -171,6 +186,11 @@
         "rmse": 1.0571,
         "mae": 0.8075,
         "mape": 1.02
+      },
+      "hw_prod_180d_m30": {
+        "rmse": 0.9036,
+        "mae": 0.6583,
+        "mape": 0.83
       },
       "holt_winters_m30": {
         "rmse": 0.8905,
@@ -183,9 +203,9 @@
         "mape": 1.25
       },
       "holt_winters": {
-        "rmse": 0.8905,
-        "mae": 0.6205,
-        "mape": 0.78
+        "rmse": 0.9036,
+        "mae": 0.6583,
+        "mape": 0.83
       }
     },
     "Govt/PSU": {
@@ -209,7 +229,7 @@
         "mae": 0.4395,
         "mape": 0.48
       },
-      "holt_prod_45d": {
+      "holt_legacy_45d": {
         "rmse": 0.6189,
         "mae": 0.4936,
         "mape": 0.54
@@ -218,6 +238,11 @@
         "rmse": 0.5416,
         "mae": 0.407,
         "mape": 0.44
+      },
+      "hw_prod_180d_m30": {
+        "rmse": 0.4497,
+        "mae": 0.2985,
+        "mape": 0.32
       },
       "holt_winters_m30": {
         "rmse": 0.4167,
@@ -230,9 +255,9 @@
         "mape": 0.48
       },
       "holt_winters": {
-        "rmse": 0.4167,
-        "mae": 0.2564,
-        "mape": 0.28
+        "rmse": 0.4497,
+        "mae": 0.2985,
+        "mape": 0.32
       }
     },
     "Retirees": {
@@ -256,7 +281,7 @@
         "mae": 1.3008,
         "mape": 1.59
       },
-      "holt_prod_45d": {
+      "holt_legacy_45d": {
         "rmse": 1.9176,
         "mae": 1.5537,
         "mape": 1.9
@@ -265,6 +290,11 @@
         "rmse": 1.5398,
         "mae": 1.183,
         "mape": 1.45
+      },
+      "hw_prod_180d_m30": {
+        "rmse": 1.1342,
+        "mae": 0.6999,
+        "mape": 0.85
       },
       "holt_winters_m30": {
         "rmse": 1.0288,
@@ -277,9 +307,9 @@
         "mape": 1.59
       },
       "holt_winters": {
-        "rmse": 1.0288,
-        "mae": 0.5834,
-        "mape": 0.71
+        "rmse": 1.1342,
+        "mae": 0.6999,
+        "mape": 0.85
       }
     },
     "Daily Wage": {
@@ -303,7 +333,7 @@
         "mae": 0.533,
         "mape": 1.08
       },
-      "holt_prod_45d": {
+      "holt_legacy_45d": {
         "rmse": 1.0793,
         "mae": 0.8079,
         "mape": 1.64
@@ -312,6 +342,11 @@
         "rmse": 0.7047,
         "mae": 0.5495,
         "mape": 1.12
+      },
+      "hw_prod_180d_m30": {
+        "rmse": 0.6365,
+        "mae": 0.4676,
+        "mape": 0.95
       },
       "holt_winters_m30": {
         "rmse": 0.6855,
@@ -324,9 +359,9 @@
         "mape": 1.08
       },
       "holt_winters": {
-        "rmse": 0.6855,
-        "mae": 0.5159,
-        "mape": 1.05
+        "rmse": 0.6365,
+        "mae": 0.4676,
+        "mape": 0.95
       }
     },
     "Young Professionals": {
@@ -350,7 +385,7 @@
         "mae": 1.4189,
         "mape": 1.93
       },
-      "holt_prod_45d": {
+      "holt_legacy_45d": {
         "rmse": 2.0727,
         "mae": 1.6516,
         "mape": 2.25
@@ -359,6 +394,11 @@
         "rmse": 1.6603,
         "mae": 1.2607,
         "mape": 1.72
+      },
+      "hw_prod_180d_m30": {
+        "rmse": 1.2015,
+        "mae": 0.7976,
+        "mape": 1.08
       },
       "holt_winters_m30": {
         "rmse": 1.1391,
@@ -371,9 +411,9 @@
         "mape": 1.93
       },
       "holt_winters": {
-        "rmse": 1.1391,
-        "mae": 0.7031,
-        "mape": 0.96
+        "rmse": 1.2015,
+        "mae": 0.7976,
+        "mape": 1.08
       }
     }
   },
@@ -390,10 +430,15 @@
           "mae": 0.3488,
           "mape": 0.38
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 0.3908,
           "mae": 0.2812,
           "mape": 0.31
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 0.4703,
+          "mae": 0.2923,
+          "mape": 0.32
         },
         "holt_winters_m30": {
           "rmse": 0.3888,
@@ -412,10 +457,15 @@
           "mae": 0.412,
           "mape": 0.45
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 0.755,
           "mae": 0.5711,
           "mape": 0.63
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 0.5897,
+          "mae": 0.3744,
+          "mape": 0.41
         },
         "holt_winters_m30": {
           "rmse": 0.5445,
@@ -434,10 +484,15 @@
           "mae": 0.4099,
           "mape": 0.45
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 0.8363,
           "mae": 0.6718,
           "mape": 0.73
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 0.5891,
+          "mae": 0.3936,
+          "mape": 0.43
         },
         "holt_winters_m30": {
           "rmse": 0.5478,
@@ -458,10 +513,15 @@
           "mae": 0.9207,
           "mape": 1.3
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 0.6404,
           "mae": 0.5452,
           "mape": 0.77
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 0.5315,
+          "mae": 0.3848,
+          "mape": 0.55
         },
         "holt_winters_m30": {
           "rmse": 0.5255,
@@ -480,10 +540,15 @@
           "mae": 0.9976,
           "mape": 1.41
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 1.0183,
           "mae": 0.7894,
           "mape": 1.12
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 0.7976,
+          "mae": 0.548,
+          "mape": 0.78
         },
         "holt_winters_m30": {
           "rmse": 0.8179,
@@ -502,10 +567,15 @@
           "mae": 1.0282,
           "mape": 1.45
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 1.0882,
           "mae": 0.8478,
           "mape": 1.2
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 1.0167,
+          "mae": 0.7382,
+          "mape": 1.05
         },
         "holt_winters_m30": {
           "rmse": 1.0008,
@@ -526,10 +596,15 @@
           "mae": 0.9427,
           "mape": 1.63
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 0.8791,
           "mae": 0.6665,
           "mape": 1.16
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 0.8138,
+          "mae": 0.494,
+          "mape": 0.86
         },
         "holt_winters_m30": {
           "rmse": 0.8353,
@@ -548,10 +623,15 @@
           "mae": 1.0935,
           "mape": 1.9
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 1.734,
           "mae": 1.3092,
           "mape": 2.29
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 1.1457,
+          "mae": 0.753,
+          "mape": 1.31
         },
         "holt_winters_m30": {
           "rmse": 1.1666,
@@ -570,10 +650,15 @@
           "mae": 1.0935,
           "mape": 1.9
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 1.9732,
           "mae": 1.5839,
           "mape": 2.75
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 1.3388,
+          "mae": 0.9848,
+          "mape": 1.71
         },
         "holt_winters_m30": {
           "rmse": 1.2968,
@@ -594,10 +679,15 @@
           "mae": 0.9351,
           "mape": 1.19
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 0.6681,
           "mae": 0.5604,
           "mape": 0.7
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 0.6067,
+          "mae": 0.3913,
+          "mape": 0.49
         },
         "holt_winters_m30": {
           "rmse": 0.5855,
@@ -616,10 +706,15 @@
           "mae": 0.9957,
           "mape": 1.26
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 1.1637,
           "mae": 0.8939,
           "mape": 1.13
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 0.797,
+          "mae": 0.5446,
+          "mape": 0.69
         },
         "holt_winters_m30": {
           "rmse": 0.7807,
@@ -638,10 +733,15 @@
           "mae": 0.9578,
           "mape": 1.21
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 1.098,
           "mae": 0.8653,
           "mape": 1.09
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 0.9036,
+          "mae": 0.6583,
+          "mape": 0.83
         },
         "holt_winters_m30": {
           "rmse": 0.8905,
@@ -662,10 +762,15 @@
           "mae": 0.2918,
           "mape": 0.32
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 0.3137,
           "mae": 0.2052,
           "mape": 0.22
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 0.3802,
+          "mae": 0.2383,
+          "mape": 0.26
         },
         "holt_winters_m30": {
           "rmse": 0.3379,
@@ -684,10 +789,15 @@
           "mae": 0.3394,
           "mape": 0.37
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 0.5699,
           "mae": 0.4165,
           "mape": 0.45
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 0.458,
+          "mae": 0.2891,
+          "mape": 0.31
         },
         "holt_winters_m30": {
           "rmse": 0.4253,
@@ -706,10 +816,15 @@
           "mae": 0.3285,
           "mape": 0.36
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 0.6189,
           "mae": 0.4936,
           "mape": 0.54
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 0.4497,
+          "mae": 0.2985,
+          "mape": 0.32
         },
         "holt_winters_m30": {
           "rmse": 0.4167,
@@ -730,10 +845,15 @@
           "mae": 0.4872,
           "mape": 0.59
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 0.9783,
           "mae": 0.7331,
           "mape": 0.89
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 0.8891,
+          "mae": 0.5284,
+          "mape": 0.64
         },
         "holt_winters_m30": {
           "rmse": 0.7208,
@@ -752,10 +872,15 @@
           "mae": 0.6532,
           "mape": 0.8
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 1.9433,
           "mae": 1.4979,
           "mape": 1.84
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 1.1601,
+          "mae": 0.6853,
+          "mape": 0.84
         },
         "holt_winters_m30": {
           "rmse": 1.0484,
@@ -774,10 +899,15 @@
           "mae": 0.6402,
           "mape": 0.78
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 1.9176,
           "mae": 1.5537,
           "mape": 1.9
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 1.1342,
+          "mae": 0.6999,
+          "mape": 0.85
         },
         "holt_winters_m30": {
           "rmse": 1.0288,
@@ -798,10 +928,15 @@
           "mae": 0.6656,
           "mape": 1.36
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 0.3863,
           "mae": 0.2786,
           "mape": 0.57
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 0.3501,
+          "mae": 0.2313,
+          "mape": 0.47
         },
         "holt_winters_m30": {
           "rmse": 0.3847,
@@ -820,10 +955,15 @@
           "mae": 0.6639,
           "mape": 1.35
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 0.6448,
           "mae": 0.479,
           "mape": 0.97
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 0.5169,
+          "mae": 0.3571,
+          "mape": 0.73
         },
         "holt_winters_m30": {
           "rmse": 0.6173,
@@ -842,10 +982,15 @@
           "mae": 0.6438,
           "mape": 1.31
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 1.0793,
           "mae": 0.8079,
           "mape": 1.64
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 0.6365,
+          "mae": 0.4676,
+          "mape": 0.95
         },
         "holt_winters_m30": {
           "rmse": 0.6855,
@@ -866,10 +1011,15 @@
           "mae": 0.6079,
           "mape": 0.82
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 1.1159,
           "mae": 0.8495,
           "mape": 1.15
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 0.9494,
+          "mae": 0.5909,
+          "mape": 0.8
         },
         "holt_winters_m30": {
           "rmse": 0.8384,
@@ -888,10 +1038,15 @@
           "mae": 0.7783,
           "mape": 1.06
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 2.111,
           "mae": 1.6339,
           "mape": 2.24
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 1.2058,
+          "mae": 0.749,
+          "mape": 1.02
         },
         "holt_winters_m30": {
           "rmse": 1.155,
@@ -910,10 +1065,15 @@
           "mae": 0.7685,
           "mape": 1.04
         },
-        "holt_prod_45d": {
+        "holt_legacy_45d": {
           "rmse": 2.0727,
           "mae": 1.6516,
           "mape": 2.25
+        },
+        "hw_prod_180d_m30": {
+          "rmse": 1.2015,
+          "mae": 0.7976,
+          "mape": 1.08
         },
         "holt_winters_m30": {
           "rmse": 1.1391,
@@ -925,13 +1085,15 @@
   },
   "summary": {
     "evaluation_method": "Rolling-origin expanding backtest (min_train=180d, step=15d, horizon=30d, 23 origins/segment on 551-day FHS series)",
+    "live_production_model": "hw_prod_180d_m30",
     "models_compared": [
       "naive",
       "seasonal_naive_7",
       "seasonal_naive_30",
       "sma_7",
-      "holt_prod_45d",
+      "holt_legacy_45d",
       "holt_expanding",
+      "hw_prod_180d_m30",
       "holt_winters_m30"
     ],
     "mean_mae_by_model": {
@@ -939,8 +1101,9 @@
       "seasonal_naive_7": 1.0344,
       "seasonal_naive_30": 0.7338,
       "sma_7": 0.9467,
-      "holt_prod_45d": 1.0595,
+      "holt_legacy_45d": 1.0595,
       "holt_expanding": 0.8521,
+      "hw_prod_180d_m30": 0.6298,
       "holt_winters_m30": 0.5833
     },
     "mean_mape_by_model": {
@@ -948,20 +1111,23 @@
       "seasonal_naive_7": 1.45,
       "seasonal_naive_30": 1.06,
       "sma_7": 1.33,
-      "holt_prod_45d": 1.51,
+      "holt_legacy_45d": 1.51,
       "holt_expanding": 1.21,
+      "hw_prod_180d_m30": 0.9,
       "holt_winters_m30": 0.85
     },
-    "holt_prod_45d_wins_vs_naive": "0/8",
-    "holt_prod_45d_wins_vs_snaive_30": "2/8",
-    "holt_prod_45d_avg_mae_improvement_vs_naive_pct": -31.3,
+    "holt_legacy_45d_wins_vs_naive": "0/8",
+    "holt_legacy_45d_avg_mae_improvement_vs_naive_pct": -31.3,
+    "hw_prod_180d_wins_vs_naive": "8/8",
+    "hw_prod_180d_wins_vs_snaive_30": "6/8",
+    "hw_prod_180d_avg_mae_improvement_vs_naive_pct": 20.3,
     "hw_m30_wins_vs_naive": "8/8",
     "hw_m30_wins_vs_snaive_30": "8/8",
     "hw_m30_avg_mae_improvement_vs_naive_pct": 25.6,
     "hw_wins_vs_naive": "8/8",
-    "avg_rmse_improvement_pct": 15.9,
+    "avg_rmse_improvement_pct": 13.1,
     "wins_and_losses": {
-      "holt_prod_45d_vs_naive": {
+      "holt_legacy_45d_vs_naive": {
         "wins": [],
         "losses": [
           "IT Salaried",
@@ -974,17 +1140,30 @@
           "Young Professionals"
         ]
       },
-      "holt_prod_45d_vs_snaive_30": {
+      "hw_prod_180d_vs_naive": {
         "wins": [
-          "Gig/Freelance",
-          "Small Business"
-        ],
-        "losses": [
           "IT Salaried",
+          "Gig/Freelance",
           "Students",
+          "Small Business",
           "Govt/PSU",
           "Retirees",
           "Daily Wage",
+          "Young Professionals"
+        ],
+        "losses": []
+      },
+      "hw_prod_180d_vs_snaive_30": {
+        "wins": [
+          "IT Salaried",
+          "Gig/Freelance",
+          "Students",
+          "Small Business",
+          "Govt/PSU",
+          "Daily Wage"
+        ],
+        "losses": [
+          "Retirees",
           "Young Professionals"
         ]
       },
@@ -1013,8 +1192,14 @@
           "Young Professionals"
         ],
         "losses": []
-      }
+      },
+      "hw_prod_180d_short_horizon_h1_7_losses_vs_naive": [
+        "IT Salaried",
+        "Govt/PSU",
+        "Retirees",
+        "Young Professionals"
+      ]
     },
-    "honest_finding": "Production 45-day unseasonal Holt beats Naive on 0/8 segments (-31.3% avg MAE) and 30-day Seasonal-Naive on 2/8 segments because synthetic salary/rent cashflows on days 1-2 induce a 30-day cycle that unseasonal linear trend overshoots. With full expanding history and monthly seasonality (Holt-Winters seasonal_periods=30, damped trend), HW-m30 beats Naive on 8/8 segments (+25.6% avg MAE) and Seasonal-Naive (30d) on 8/8 segments at 30d horizon, though Naive still beats HW-m30 on 3/8 segments at short 1-7 day horizons (Students, Govt/PSU, Daily Wage)."
+    "honest_finding": "Live seasonal damped Holt-Winters (180d window, m=30) beats Naive on 8/8 segments (+20.3% avg 30d MAE) and beats 30d Seasonal-Naive on 6/8 segments (expanding m=30 wins 8/8, +25.6% MAE; legacy 45d unseasonal Holt lost 8/8, -31.3%). At short 1-7 day horizons (h=1..7), live HW-180d loses to Naive on 4/8 segments (IT Salaried, Govt/PSU, Retirees, Young Professionals) where immediate daily shocks dominate seasonal cycle effects."
   }
 }

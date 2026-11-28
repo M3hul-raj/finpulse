@@ -46,10 +46,10 @@
 
 #### `forecaster.py` — Time-Series Forecasting Engine
 - **What it does**: Forecasts FHS 30 days into the future for each segment.
-- **Algorithm**: Production fits `ExponentialSmoothing(trend="add", seasonal=None)` (Holt's linear trend) on a 45-day lookback; full-history rolling-origin seasonal Holt-Winters (`seasonal_periods=30`) is evaluated in `ml_pipeline.py`.
+- **Algorithm**: Production fits seasonal damped Holt-Winters (`trend="add", damped_trend=True, seasonal="add", seasonal_periods=30`) on a `180d` lookback window (falling back to damped Holt -> SES -> linear for `< 60` points). Full 23-origin backtests in `ml_pipeline.py` show `8/8` wins vs Naive at 30d (`+20.3%` MAE), while Naive wins at `1–7` day short horizons on `4/8` segments.
 - **Measured performance (`src/benchmark.py`)**:
-  - Scalar customer sampling (`30` vs `125` customers/segment): `4.61×` heatmap speedup (`2.90s -> 0.63s`), `3.01×` forecast speedup (`69.93s -> 23.24s`).
-  - Vectorized `compute_fhs_matrix()`: `21.53×` forecast speedup over scalar 30c (`23.24s -> 1.08s` for 30c; `1.20s` for full 125c) with `0.00` numerical diff.
+  - Scalar customer sampling (`30` vs `125` customers/segment): `3.16×` heatmap speedup (`2.99s -> 0.95s`), `7.71×` `180d` forecast speedup (`676.59s -> 87.70s`).
+  - Vectorized `compute_fhs_matrix()`: `17.60×` `180d` forecast speedup over scalar 30c (`87.70s -> 4.98s` for 30c; `5.75s` for full 125c) with `0.00` numerical diff.
 - **Output per segment**: `{ds, yhat, yhat_lower, yhat_upper}` — point forecast + 95% confidence interval.
 - **Fallback**: If Holt-Winters fitting fails, uses last-value repeat.
 
@@ -179,7 +179,7 @@ For strictly verified, reproducible resume statements backed by executable comma
 ## Part 4: Interview Talking Points
 
 1. **"Why audit the risk classifier for leakage?"** — Because `risk_tier` was derived from FHS while feeding FHS's components over the same 730-day window, a threshold rule got `96.0%` accuracy. Separating Year-1 → Year-2 on disjoint customers and removing direct formula inputs dropped RF to `76.5%` (with `78.1%` 5-fold CV), and evaluating a genuinely forward 30-day decline task (`AUC 0.846`) vs disjoint 180-day decline (`mean-reversion rule AUC 0.806 > RF 0.722`) exposed the limits of i.i.d. synthetic shocks.
-2. **"How did rolling-origin forecasting change your view?"** — Replacing a cherry-picked 36d/9d split with 23 expanding origins over 551 days revealed that the production 45-day unseasonal Holt model loses `0/8` to Naive (`-31.3%` MAE) because monthly salary/rent events create a 30-day cycle, whereas seasonal Holt-Winters (`m=30`, damped) beats Naive `8/8` (`+25.6%` MAE).
-3. **"How did you eliminate Render cold-start pain?"** — Precomputing baseline `shock=0` heatmap/forecasts into `model_results/baseline_cache.json` (`23.1 KB`), lazy-loading the `27 MB` CSV only for `shock > 0`, adding `/health`, and vectorizing `compute_fhs_matrix()` (`21.53×` forecast speedup: `23.24s -> 1.08s`).
-4. **"Why deterministic sampling with `zlib.crc32`?"** — Ensures identical customer subsets per segment across restarts and shock scenarios, yielding `4.61×` scalar heatmap / `3.01×` scalar forecast speedup with `0.33` / `0.94` FHS MAE vs all 125 customers.
+2. **"How did rolling-origin forecasting change your view?"** — Replacing a cherry-picked 36d/9d split with 23 expanding origins over 551 days revealed that the legacy 45-day unseasonal Holt model lost `0/8` to Naive (`-31.3%` MAE) because day-1 salary / day-2 rent cashflows create a 30-day cycle. Switching live forecasting to seasonal damped Holt-Winters (`m=30`, `180d`) wins `8/8` vs Naive (`+20.3%` MAE) at 30d while still losing to Naive at `h=1..7` short horizons on `4/8` segments.
+3. **"How did you eliminate Render cold-start pain?"** — Precomputing baseline `shock=0` heatmap/forecasts into `model_results/baseline_cache.json` (`54.6 KB`), lazy-loading the `27.6 MB` CSV only for `shock > 0`, adding `/health`, and vectorizing `compute_fhs_matrix()` (`17.60×` forecast speedup: `87.70s -> 4.98s`).
+4. **"Why deterministic sampling with `zlib.crc32`?"** — Ensures identical customer subsets per segment across restarts and shock scenarios, yielding `3.16×` scalar heatmap / `7.71×` scalar `180d` forecast speedup with `0.33` / `0.65` FHS MAE vs all 125 customers.
 5. **"How is LLM failover tested without secrets?"** — Mocked SDK tests verify Gemini-to-Groq failover, explicit client timeouts (`10s`), placeholder key rejection, input validation, and deterministic fallback responses.

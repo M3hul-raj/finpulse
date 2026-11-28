@@ -740,8 +740,9 @@ def _compare_forecasters(df: pd.DataFrame) -> dict:
     """
     Rolling-origin evaluation on full 551-day historical FHS series across all 8 segments.
     Evaluates horizon h=30 days from expanding origins (min_train=180, step=15 -> 23 origins/seg).
-    Compares Naive, Seasonal-Naive (m=7, m=30), 7-day SMA, Holt (Prod 45d, unseasonal),
-    Holt (Expanding, unseasonal), and Holt-Winters (Expanding, seasonal m=30, damped).
+    Compares Naive, Seasonal-Naive (m=7, m=30), 7-day SMA, legacy 45d unseasonal Holt,
+    expanding unseasonal Holt, live production HW (180d window, m=30, damped), and
+    expanding seasonal HW (m=30, damped).
     """
     print("\n" + "=" * 70)
     print("STEP 4: Rolling-Origin Forecasting Backtest (551-day FHS series)")
@@ -755,7 +756,8 @@ def _compare_forecasters(df: pd.DataFrame) -> dict:
     horizon_breakdown = {}
     model_names = [
         "naive", "seasonal_naive_7", "seasonal_naive_30",
-        "sma_7", "holt_prod_45d", "holt_expanding", "holt_winters_m30",
+        "sma_7", "holt_legacy_45d", "holt_expanding",
+        "hw_prod_180d_m30", "holt_winters_m30",
     ]
 
     for seg in df["segment"].unique():
@@ -773,11 +775,14 @@ def _compare_forecasters(df: pd.DataFrame) -> dict:
             preds["seasonal_naive_7"].append(np.tile(tr.iloc[-7:].to_numpy(), 5)[:horizon])
             preds["seasonal_naive_30"].append(tr.iloc[-30:].to_numpy())
             preds["sma_7"].append(np.full(horizon, float(tr.iloc[-7:].mean())))
-            preds["holt_prod_45d"].append(
+            preds["holt_legacy_45d"].append(
                 _fit_forecast_safe(tr.iloc[-45:], horizon, trend="add", seasonal=None)
             )
             preds["holt_expanding"].append(
                 _fit_forecast_safe(tr, horizon, trend="add", seasonal=None)
+            )
+            preds["hw_prod_180d_m30"].append(
+                _fit_forecast_safe(tr.iloc[-180:], horizon, trend="add", damped_trend=True, seasonal="add", seasonal_periods=30)
             )
             preds["holt_winters_m30"].append(
                 _fit_forecast_safe(tr, horizon, trend="add", damped_trend=True, seasonal="add", seasonal_periods=30)
@@ -786,9 +791,8 @@ def _compare_forecasters(df: pd.DataFrame) -> dict:
         y_mat = np.stack(trues)  # (n_origins, horizon)
         y_flat = y_mat.ravel()
         seg_metrics = {m: _compute_metrics(y_flat, np.stack(preds[m]).ravel()) for m in model_names}
-        # Backwards-compatible aliases used by existing UI if needed
         seg_metrics["sma"] = seg_metrics["sma_7"]
-        seg_metrics["holt_winters"] = seg_metrics["holt_winters_m30"]
+        seg_metrics["holt_winters"] = seg_metrics["hw_prod_180d_m30"]
         per_segment[seg] = seg_metrics
 
         horizon_breakdown[seg] = {}
@@ -796,15 +800,15 @@ def _compare_forecasters(df: pd.DataFrame) -> dict:
             y_h = y_mat[:, sl].ravel()
             horizon_breakdown[seg][h_label] = {
                 m: _compute_metrics(y_h, np.stack(preds[m])[:, sl].ravel())
-                for m in ["naive", "seasonal_naive_30", "holt_prod_45d", "holt_winters_m30"]
+                for m in ["naive", "seasonal_naive_30", "holt_legacy_45d", "hw_prod_180d_m30", "holt_winters_m30"]
             }
 
         print(
             f"  {seg:20s} ({len(origins)} origins): "
             f"Naive MAE={seg_metrics['naive']['mae']:.3f} | "
             f"SNaive30 MAE={seg_metrics['seasonal_naive_30']['mae']:.3f} | "
-            f"Holt45d MAE={seg_metrics['holt_prod_45d']['mae']:.3f} | "
-            f"HW-m30 MAE={seg_metrics['holt_winters_m30']['mae']:.3f}"
+            f"HW-Prod180 MAE={seg_metrics['hw_prod_180d_m30']['mae']:.3f} | "
+            f"HW-Exp MAE={seg_metrics['holt_winters_m30']['mae']:.3f}"
         )
 
     segs = list(per_segment.keys())
@@ -815,10 +819,15 @@ def _compare_forecasters(df: pd.DataFrame) -> dict:
         losses = [s for s in segs if s not in wins]
         return wins, losses
 
-    holt45_vs_naive_w, holt45_vs_naive_l = _win_list("holt_prod_45d", "naive")
-    holt45_vs_sn30_w, holt45_vs_sn30_l = _win_list("holt_prod_45d", "seasonal_naive_30")
+    holt45_vs_naive_w, holt45_vs_naive_l = _win_list("holt_legacy_45d", "naive")
+    hw180_vs_naive_w, hw180_vs_naive_l = _win_list("hw_prod_180d_m30", "naive")
+    hw180_vs_sn30_w, hw180_vs_sn30_l = _win_list("hw_prod_180d_m30", "seasonal_naive_30")
     hw30_vs_naive_w, hw30_vs_naive_l = _win_list("holt_winters_m30", "naive")
     hw30_vs_sn30_w, hw30_vs_sn30_l = _win_list("holt_winters_m30", "seasonal_naive_30")
+    hw180_h7_losses = [
+        s for s in segs
+        if horizon_breakdown[s]["h1_7"]["hw_prod_180d_m30"]["mae"] >= horizon_breakdown[s]["h1_7"]["naive"]["mae"]
+    ]
 
     mean_mae_by_model = {
         m: round(float(np.mean([per_segment[s][m]["mae"] for s in segs])), 4)
@@ -828,12 +837,16 @@ def _compare_forecasters(df: pd.DataFrame) -> dict:
         m: round(float(np.mean([per_segment[s][m]["mape"] for s in segs])), 2)
         for m in model_names
     }
+    avg_hw180_mae_imp = float(np.mean([
+        (per_segment[s]["naive"]["mae"] - per_segment[s]["hw_prod_180d_m30"]["mae"]) / per_segment[s]["naive"]["mae"] * 100.0
+        for s in segs
+    ]))
     avg_hw30_mae_imp = float(np.mean([
         (per_segment[s]["naive"]["mae"] - per_segment[s]["holt_winters_m30"]["mae"]) / per_segment[s]["naive"]["mae"] * 100.0
         for s in segs
     ]))
     avg_holt45_mae_imp = float(np.mean([
-        (per_segment[s]["naive"]["mae"] - per_segment[s]["holt_prod_45d"]["mae"]) / per_segment[s]["naive"]["mae"] * 100.0
+        (per_segment[s]["naive"]["mae"] - per_segment[s]["holt_legacy_45d"]["mae"]) / per_segment[s]["naive"]["mae"] * 100.0
         for s in segs
     ]))
 
@@ -842,35 +855,37 @@ def _compare_forecasters(df: pd.DataFrame) -> dict:
         "horizon_breakdown": horizon_breakdown,
         "summary": {
             "evaluation_method": f"Rolling-origin expanding backtest (min_train={min_train}d, step={step}d, horizon={horizon}d, 23 origins/segment on 551-day FHS series)",
+            "live_production_model": "hw_prod_180d_m30",
             "models_compared": model_names,
             "mean_mae_by_model": mean_mae_by_model,
             "mean_mape_by_model": mean_mape_by_model,
-            "holt_prod_45d_wins_vs_naive": f"{len(holt45_vs_naive_w)}/{n_segs}",
-            "holt_prod_45d_wins_vs_snaive_30": f"{len(holt45_vs_sn30_w)}/{n_segs}",
-            "holt_prod_45d_avg_mae_improvement_vs_naive_pct": round(avg_holt45_mae_imp, 1),
+            "holt_legacy_45d_wins_vs_naive": f"{len(holt45_vs_naive_w)}/{n_segs}",
+            "holt_legacy_45d_avg_mae_improvement_vs_naive_pct": round(avg_holt45_mae_imp, 1),
+            "hw_prod_180d_wins_vs_naive": f"{len(hw180_vs_naive_w)}/{n_segs}",
+            "hw_prod_180d_wins_vs_snaive_30": f"{len(hw180_vs_sn30_w)}/{n_segs}",
+            "hw_prod_180d_avg_mae_improvement_vs_naive_pct": round(avg_hw180_mae_imp, 1),
             "hw_m30_wins_vs_naive": f"{len(hw30_vs_naive_w)}/{n_segs}",
             "hw_m30_wins_vs_snaive_30": f"{len(hw30_vs_sn30_w)}/{n_segs}",
             "hw_m30_avg_mae_improvement_vs_naive_pct": round(avg_hw30_mae_imp, 1),
-            "hw_wins_vs_naive": f"{len(hw30_vs_naive_w)}/{n_segs}",
+            "hw_wins_vs_naive": f"{len(hw180_vs_naive_w)}/{n_segs}",
             "avg_rmse_improvement_pct": round(float(np.mean([
-                (per_segment[s]["naive"]["rmse"] - per_segment[s]["holt_winters_m30"]["rmse"]) / per_segment[s]["naive"]["rmse"] * 100.0
+                (per_segment[s]["naive"]["rmse"] - per_segment[s]["hw_prod_180d_m30"]["rmse"]) / per_segment[s]["naive"]["rmse"] * 100.0
                 for s in segs
             ])), 1),
             "wins_and_losses": {
-                "holt_prod_45d_vs_naive": {"wins": holt45_vs_naive_w, "losses": holt45_vs_naive_l},
-                "holt_prod_45d_vs_snaive_30": {"wins": holt45_vs_sn30_w, "losses": holt45_vs_sn30_l},
+                "holt_legacy_45d_vs_naive": {"wins": holt45_vs_naive_w, "losses": holt45_vs_naive_l},
+                "hw_prod_180d_vs_naive": {"wins": hw180_vs_naive_w, "losses": hw180_vs_naive_l},
+                "hw_prod_180d_vs_snaive_30": {"wins": hw180_vs_sn30_w, "losses": hw180_vs_sn30_l},
                 "hw_m30_vs_naive": {"wins": hw30_vs_naive_w, "losses": hw30_vs_naive_l},
                 "hw_m30_vs_snaive_30": {"wins": hw30_vs_sn30_w, "losses": hw30_vs_sn30_l},
+                "hw_prod_180d_short_horizon_h1_7_losses_vs_naive": hw180_h7_losses,
             },
             "honest_finding": (
-                f"Production 45-day unseasonal Holt beats Naive on {len(holt45_vs_naive_w)}/{n_segs} segments "
-                f"({avg_holt45_mae_imp:+.1f}% avg MAE) and 30-day Seasonal-Naive on {len(holt45_vs_sn30_w)}/{n_segs} segments "
-                "because synthetic salary/rent cashflows on days 1-2 induce a 30-day cycle that unseasonal linear trend overshoots. "
-                f"With full expanding history and monthly seasonality (Holt-Winters seasonal_periods=30, damped trend), "
-                f"HW-m30 beats Naive on {len(hw30_vs_naive_w)}/{n_segs} segments ({avg_hw30_mae_imp:+.1f}% avg MAE) and "
-                f"Seasonal-Naive (30d) on {len(hw30_vs_sn30_w)}/{n_segs} segments at 30d horizon"
-                + (f" (losing at 30d on: {', '.join(hw30_vs_naive_l)})" if hw30_vs_naive_l else "")
-                + ", though Naive still beats HW-m30 on 3/8 segments at short 1-7 day horizons (Students, Govt/PSU, Daily Wage)."
+                f"Live seasonal damped Holt-Winters (180d window, m=30) beats Naive on {len(hw180_vs_naive_w)}/{n_segs} segments "
+                f"({avg_hw180_mae_imp:+.1f}% avg 30d MAE) and beats 30d Seasonal-Naive on {len(hw180_vs_sn30_w)}/{n_segs} segments "
+                f"(expanding m=30 wins {len(hw30_vs_naive_w)}/{n_segs}, {avg_hw30_mae_imp:+.1f}% MAE; legacy 45d unseasonal Holt lost {len(holt45_vs_naive_l)}/{n_segs}, {avg_holt45_mae_imp:+.1f}%). "
+                + (f"At 30d horizon, live HW-180d loses to Naive on: {', '.join(hw180_vs_naive_l)}. " if hw180_vs_naive_l else "")
+                + f"At short 1-7 day horizons (h=1..7), live HW-180d loses to Naive on {len(hw180_h7_losses)}/{n_segs} segments ({', '.join(hw180_h7_losses)}) where immediate daily shocks dominate seasonal cycle effects."
             ),
         },
     }
@@ -878,8 +893,8 @@ def _compare_forecasters(df: pd.DataFrame) -> dict:
     with open(MODEL_DIR / "forecast_metrics.json", "w") as f:
         json.dump(forecast_results, f, indent=2)
     print(
-        f"  [OK] forecast_metrics.json saved | Holt45d vs Naive={len(holt45_vs_naive_w)}/{n_segs} ({avg_holt45_mae_imp:+.1f}% MAE) | "
-        f"HW-m30 vs Naive={len(hw30_vs_naive_w)}/{n_segs} ({avg_hw30_mae_imp:+.1f}% MAE)"
+        f"  [OK] forecast_metrics.json saved | LegacyHolt45d vs Naive={len(holt45_vs_naive_w)}/{n_segs} ({avg_holt45_mae_imp:+.1f}%) | "
+        f"Live HW-180d vs Naive={len(hw180_vs_naive_w)}/{n_segs} ({avg_hw180_mae_imp:+.1f}%)"
     )
     return forecast_results
 
@@ -1008,7 +1023,10 @@ def run_pipeline():
     lr_acc = classification["models"]["logistic_regression"]["accuracy"]
     rule_acc = classification["models"]["threshold_rule"]["accuracy"]
     print(f"  Audited Y1->Y2 risk_tier: Rule={rule_acc:.3f}, LR={lr_acc:.3f}, RF={rf_acc:.3f}")
-    print(f"  Forecast Holt45d vs Naive: {forecasting['summary']['holt_prod_45d_wins_vs_naive']} | HW-m30 vs Naive: {forecasting['summary']['hw_m30_wins_vs_naive']}")
+    print(
+        f"  Forecast LegacyHolt45d vs Naive: {forecasting['summary']['holt_legacy_45d_wins_vs_naive']} | "
+        f"Live HW-180d vs Naive: {forecasting['summary']['hw_prod_180d_wins_vs_naive']}"
+    )
     print(f"  ANOVA eta_sq={statistics['anova']['eta_squared']:.4f} | Spearman rho={statistics['spearman']['rho']:.4f}")
 
 

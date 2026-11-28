@@ -2,28 +2,26 @@
 forecaster.py
 Forecasts FHS for each segment over the next 30 days on synthetic balance data.
 
-Model note:
-  The production path fits ExponentialSmoothing(trend="add", seasonal=None), which is
-  Holt's linear trend method (unseasonal), with SES+trend and linear-trend fallbacks.
-  Because LOOKBACK_DAYS=45 is shorter than 2 full monthly cycles (60 days), seasonal
-  period=30 Holt-Winters cannot be fit on the 45-day production window and is evaluated
-  separately over full 551-day history in ml_pipeline.py / docs/EVALUATION.md.
-
-Performance notes (measured via python src/benchmark.py):
-  - Deterministic sampling of 30/125 customers per segment via zlib.crc32 yields a
-    measured 4.61x speedup on scalar heatmap (2.90s -> 0.63s, MAE 0.33 FHS pts, 8/8 tiers)
-    and 3.01x speedup on scalar forecasting (69.93s -> 23.24s, mean fc MAE 0.94 pts, 1/1 alert match).
-  - Vectorizing FHS across customers via compute_fhs_matrix() yields a 21.53x additional
-    forecast speedup (23.24s -> 1.08s for 30c/45d; 1.20s for full 125c/45d) with 0.00 parity diff.
+Model architecture:
+  - Production fits seasonal damped Holt-Winters:
+      ExponentialSmoothing(series, trend="add", damped_trend=True,
+                           seasonal="add", seasonal_periods=30)
+    over a 180-day lookback window (6 full 30-day salary/rent cycles).
+  - Fallback chain when len(series) < 60 or optimization fails:
+      seasonal damped HW (m=30) -> damped Holt -> SES + linear slope -> linear / flat.
+  - Note on backtest trade-offs: in 23-origin rolling-origin evaluation, seasonal
+    HW (m=30) beats Naive and 30-day Seasonal-Naive at 30-day horizons, while Naive
+    still achieves lower MAE at short 1-7 day horizons on noisy/stable segments.
 """
 
 import numpy as np
 import pandas as pd
-from statsmodels.tsa.holtwinters import SimpleExpSmoothing
+from statsmodels.tsa.holtwinters import ExponentialSmoothing, SimpleExpSmoothing
 from fhs_calculator import compute_fhs_matrix, get_risk_label, sample_segment_customers
 
 FORECAST_DAYS = 30
-LOOKBACK_DAYS = 45       # Days of historical FHS to build production time series
+SEASONAL_PERIODS = 30
+LOOKBACK_DAYS = 180      # 6 monthly cycles; satisfies >= 2*seasonal_periods (60)
 SAMPLE_CUSTOMERS = 30    # Customers sampled per segment (None uses all customers)
 ROLLING_WINDOW = 180     # Rolling window size for FHS computation (days of balance data)
 
@@ -66,33 +64,53 @@ def build_daily_fhs_series(
     return pd.Series(fhs_vals, index=pd.DatetimeIndex(dates, freq="D"))
 
 
-def forecast_segment(series: pd.Series, forecast_days: int = FORECAST_DAYS) -> pd.DataFrame:
+def forecast_segment_with_model(
+    series: pd.Series,
+    forecast_days: int = FORECAST_DAYS,
+) -> tuple[pd.DataFrame, str]:
     """
-    Forecast using Holt's linear trend (ExponentialSmoothing with trend="add", seasonal=None).
-    Fallback chain: Holt -> SES + linear trend -> linear extrapolation -> flat persistence.
-    Confidence intervals scale with horizon: 1.96 * residual_std * sqrt(t).
+    Forecast using seasonal damped Holt-Winters (m=30) when >= 60 days exist.
+    Returns (forecast_df, model_used).
     """
     series = series.dropna()
     if len(series) == 0:
         raise ValueError("Cannot forecast an empty FHS series.")
 
     forecast_values = None
+    model_used = None
 
-    # Attempt 1: Holt (additive trend, no seasonal component)
-    if len(series) >= 4:
+    # Attempt 1: Seasonal damped Holt-Winters (requires >= 2 full seasonal cycles)
+    if len(series) >= 2 * SEASONAL_PERIODS:
         try:
-            from statsmodels.tsa.holtwinters import ExponentialSmoothing
             model = ExponentialSmoothing(
                 series,
                 trend="add",
+                damped_trend=True,
+                seasonal="add",
+                seasonal_periods=SEASONAL_PERIODS,
+                initialization_method="estimated",
+            ).fit(optimized=True)
+            forecast_values = model.forecast(forecast_days).values
+            model_used = "holt_winters_m30"
+        except Exception as e:
+            print(f"    Seasonal HW (m={SEASONAL_PERIODS}) failed for segment: {e}")
+
+    # Attempt 2: Unseasonal damped Holt (fallback for short series < 60 days)
+    if forecast_values is None and len(series) >= 4:
+        try:
+            model = ExponentialSmoothing(
+                series,
+                trend="add",
+                damped_trend=True,
                 seasonal=None,
                 initialization_method="estimated",
             ).fit(optimized=True)
             forecast_values = model.forecast(forecast_days).values
+            model_used = "holt_damped"
         except Exception as e:
-            print(f"    Holt failed for segment: {e}")
+            print(f"    Holt damped failed for segment: {e}")
 
-    # Attempt 2: Simple Exponential Smoothing + linear slope correction
+    # Attempt 3: Simple Exponential Smoothing + linear slope correction
     if forecast_values is None and len(series) >= 4:
         try:
             model = SimpleExpSmoothing(
@@ -104,10 +122,11 @@ def forecast_segment(series: pd.Series, forecast_days: int = FORECAST_DAYS) -> p
             slope = np.polyfit(x, recent.values, 1)[0]
             trend_correction = np.arange(1, forecast_days + 1) * slope
             forecast_values = base_forecast + trend_correction
+            model_used = "ses_trend"
         except Exception as e:
             print(f"    SES failed for segment: {e}")
 
-    # Attempt 3: Linear extrapolation or persistence fallback
+    # Attempt 4: Linear extrapolation or persistence fallback
     if forecast_values is None:
         if len(series) >= 2:
             recent = series.iloc[-30:]
@@ -116,8 +135,10 @@ def forecast_segment(series: pd.Series, forecast_days: int = FORECAST_DAYS) -> p
             forecast_values = intercept + slope * np.arange(
                 len(recent), len(recent) + forecast_days
             )
+            model_used = "linear"
         else:
             forecast_values = np.full(forecast_days, float(series.iloc[-1]))
+            model_used = "persistence"
 
     yhat = np.clip(forecast_values, 0.0, 100.0)
 
@@ -134,12 +155,19 @@ def forecast_segment(series: pd.Series, forecast_days: int = FORECAST_DAYS) -> p
         last_date + pd.Timedelta(days=1), periods=forecast_days, freq="D"
     )
 
-    return pd.DataFrame({
+    fc_df = pd.DataFrame({
         "ds": future_dates,
         "yhat": np.round(yhat, 2),
         "yhat_lower": np.round(np.clip(yhat - margin, 0.0, 100.0), 2),
         "yhat_upper": np.round(np.clip(yhat + margin, 0.0, 100.0), 2),
     })
+    return fc_df, model_used
+
+
+def forecast_segment(series: pd.Series, forecast_days: int = FORECAST_DAYS) -> pd.DataFrame:
+    """Forecast FHS over forecast_days using seasonal damped Holt-Winters (m=30)."""
+    fc_df, _ = forecast_segment_with_model(series, forecast_days=forecast_days)
+    return fc_df
 
 
 def forecast_all_segments(
@@ -161,7 +189,7 @@ def forecast_all_segments(
 
 if __name__ == "__main__":
     df = pd.read_csv("data/historical.csv", parse_dates=["date"])
-    print("Forecasting all segments (synthetic data)...")
+    print("Forecasting all segments (synthetic data, seasonal damped HW m=30, 180d window)...")
     results = forecast_all_segments(df)
     for seg, data in results.items():
         fc = data["forecast"]
